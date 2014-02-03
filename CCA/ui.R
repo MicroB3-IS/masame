@@ -9,13 +9,19 @@ shinyUI(
 	pageWithSidebar(
 		
 		# Header defintion
-		headerPanel("Perform a Canonical Correspondence Analysis..."),
+		headerPanel("Perform a (partial) canonical correspondence analysis..."),
 		
 		# Sidebar defintion
 		sidebarPanel(
 			tabsetPanel(
 			tabPanel("Data upload", 
-					# Parameters for read.csv...
+					
+				h5("Description"),
+				p("This App will perform a CCA using the cca() function from the vegan package for R. Significance is tested using anova.cca() {vegan}. Transformations are performed by decostand(), also from vegan"),
+				
+				# Parameters for read.csv...
+				h5("CSV parameters"),
+				p("Note that these parameters apply to all files uploaded. If your files are not correctly formatted, errors will result."),
 				checkboxInput('header', 'Header', TRUE),
 				
 				numericInput(
@@ -45,29 +51,29 @@ shinyUI(
 						)
 					),
 				
+				h5("Response data"),
 				fileInput(
 					inputId = 'dataset', 
 					label = 'Select a CSV file with a table of objects (sites, samples, etc) as rows and response variables as columns.',
 					accept = c('text/csv','text/comma-separated-values','.csv')
 					),
 				
-				
+				h5("Explanatory data"),
 				fileInput(
 					'explanatoryVars', 
 					'Select a CSV file with a table of objects (sites, samples, etc) as rows and explanatory variables as columns. Factor levels should have at least one non-numeric character. Numeric variables should have values that are solely numbers with no whitespace. Note: all columns will be used as contraints!',
 					accept = c('text/csv','text/comma-separated-values','.csv')
 					),
 				
+				h5("Conditioning data"),
 				fileInput(
 					'conditioningVars', 
 					'Select a CSV file with a table of objects (sites, samples, etc) as rows and conditioning variables as columns. Factor levels should have at least one non-numeric character. Numeric variables should have values that are solely numbers with no whitespace. All columns will be used as conditioning variables!',
 					accept = c('text/csv','text/comma-separated-values','.csv')
 					),
 				
-				# Select the conditioning variables of interest...
 				
-					htmlOutput("whichCondVarsUI"),
-				
+				h5("Stratification data"),
 				fileInput(
 					'strata', 
 					'If your objects are stratified (e.g. nested), select the CSV file which specifes which rows belong to each stratum. Strata should be represented by integers.',
@@ -78,9 +84,10 @@ shinyUI(
 				),
 			
    tabPanel(
-      "CCA parameters",
-					
+      "Transformations",
+			strong("Note, most of these transformations are only valid for numeric variables. Attempting these transformation on non-numeric variables will lead to errors."),				
 			# Should the data be transformed? Input for decostand()
+			h5("Response data"),
 			radioButtons(
 				inputId = 'transform',
 				label = 'Select a transformation for the response data if needed...',
@@ -92,9 +99,10 @@ shinyUI(
 					)
 				),
 			
+			h5("Explanatory data"),
 			radioButtons(
 				inputId = 'expTransform',
-				label = 'Select a transformation for the explanatory data if needed. This is only valid for numeric variables.',
+				label = 'Select a transformation for the explanatory data if needed.',
 				choices = c(
 					'No transformation' = 'none',
 					'Z score' = 'standardize',
@@ -104,10 +112,10 @@ shinyUI(
 				),
 			
 			
-			
+			h5("Conditioning data"),
 			radioButtons(
 				inputId = 'condTransform',
-				label = 'Select a transformation for the conditioning variables if needed. This is only valid for numeric variables.',
+				label = 'Select a transformation for the conditioning variables if needed.',
 				choices = c(
 					'No transformation' = 'none',
 					'Z score' = 'standardize',
@@ -121,7 +129,7 @@ shinyUI(
 		
 		
 	tabPanel(
-      "Graphical parameters",
+      "CCA parameters",
 			
 			# Type of scaling to use in plot...
 			radioButtons(
@@ -132,6 +140,10 @@ shinyUI(
 					'Type II' = 2
 				)
 			),
+		
+			# Select the conditioning variables of interest...
+				
+			htmlOutput("whichCondVarsUI"),
 			
 			# Label points?
 			radioButtons(
@@ -160,7 +172,9 @@ shinyUI(
 		tabPanel(
 			"Download results...",
 			downloadButton('downloadData.plot', 'Download ordination...'),
-			downloadButton('downloadData.objectCoordinates', 'Download object coordinates...'),			
+			br(),
+			downloadButton('downloadData.objectCoordinates', 'Download object coordinates...'),
+			br(),			
 			downloadButton('downloadData.variableCoordinates', 'Download variable coordinates...')	
 			)
 		)
@@ -171,7 +185,7 @@ shinyUI(
 			mainPanel(
 				tabsetPanel(
 					tabPanel("Plot", plotOutput("plot")),
-					tabPanel("Summary", verbatimTextOutput("print")),
+					tabPanel("Results", verbatimTextOutput("print")),
 					tabPanel("ANOVA test of significance", verbatimTextOutput("printSig"))
 					)
 				)

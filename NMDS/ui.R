@@ -9,24 +9,17 @@ shinyUI(
 	pageWithSidebar(
 		
 		# Header defintion
-		headerPanel("Perform an NMDS analysis..."),
+		headerPanel("Perform a non-metric multidimensional scaling analysis..."),
 		
 		# Sidebar defintion
 		sidebarPanel(
 		tabsetPanel(
 			tabPanel("Data upload", 
-				fileInput(
-					inputId = 'dataset', 
-					label = 'Select a CSV file to upload for analysis...',
-					accept = c('text/csv','text/comma-separated-values','.csv')
-					),
+				h5("Description"),
+				p("This App will perform an NMDS analysis using the metaMDS() function from the vegan package for R. Dissimilarities are calculated by vegdist() {vegan} and transformations are performed by decostand() {vegan}."),
+				h5("CSV parameters"),
+				p("Note that these parameters apply to all files uploaded. If your files are not correctly formatted, errors will result."),
 				
-				# TODO: See how this can be done
-				#fileInput(
-					#'metadata', 
-					#'If you would like to use additional data for modifying your plot (e.g. colouring points) upload a single column CSV file here...',
-					#accept = c('text/csv','text/comma-separated-values','.csv')
-					#),
 				
 				# Parameters for read.csv...
 				checkboxInput('header', 'Header', TRUE),
@@ -56,12 +49,43 @@ shinyUI(
 						'Single quotes' = "'",
 						'None' = ''
 						)
+					),
+				
+				fileInput(
+					inputId = 'dataset', 
+					label = 'Select a CSV file to upload for analysis...',
+					accept = c('text/csv','text/comma-separated-values','.csv')
 					)
+				
+				# TODO: See how this can be done
+				#fileInput(
+					#'metadata', 
+					#'If you would like to use additional data for modifying your plot (e.g. colouring points) upload a single column CSV file here...',
+					#accept = c('text/csv','text/comma-separated-values','.csv')
+					#)
 				),
 			
-			
 			tabPanel(
-				"NMDS parameters...",
+				"Transformations",
+				strong("Note, most of these transformations are only valid for numeric variables. Attempting these transformation on non-numeric variables will lead to errors."),		
+				br(),
+				br(),
+				# Should the data be transformed? Input for decostand()
+				
+				radioButtons(
+					inputId = 'transform',
+					label = 'If needed, select a transformation for your response data...',
+					choices = c(
+						'No transformation' = 'none',
+						'Z score' = 'standardize',
+						'Chi square' = 'chi.square',
+						'Hellinger' = 'hellinger'
+						)
+				)
+			),
+		
+			tabPanel(
+				"NMDS parameters",
 				# Parameters for metaMDS...
 				# Select dissimilarity measure
 				radioButtons(
@@ -97,7 +121,7 @@ shinyUI(
 						'Three' = 3
 						)
 				),
-			
+			h5("Graphical parameters"),
 			# Label points?
 			checkboxInput('labels', 'Label points?', FALSE)
 			),
@@ -123,8 +147,8 @@ shinyUI(
 				tabsetPanel(
 					tabPanel("Plot", plotOutput("plot")),
 					tabPanel("Shepard stress plot", plotOutput("stressplot")),
-					tabPanel("Summary", verbatimTextOutput("print"))#,
-					#tabPanel("Table", tableOutput("table")
+					tabPanel("Summary", verbatimTextOutput("print")),
+					tabPanel("Object coordinates", tableOutput("objectCoordinates"))
 					)
 			) # End mainPanel()
 

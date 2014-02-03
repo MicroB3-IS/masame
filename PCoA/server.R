@@ -31,6 +31,16 @@ shinyServer(function(input, output){
 	# input$autoTransform occasionally. Could be a machine-specific 
 	# issue.
 			dissMat <- reactive({
+				
+				if(is.null(input$dataset))
+					return()
+					
+				if(
+					!is.numeric(as.matrix(datasetFile()))
+				)
+					stop("Non-numeric values detected! Please upload only numeric data.")
+		
+				
 				if (input$autoTransform == TRUE){
 					metaMDSdist(
 						datasetFile(),
@@ -48,6 +58,10 @@ shinyServer(function(input, output){
 
 
 	pcoa <- reactive({ 
+		
+		if(is.null(input$dataset))
+					return()
+					
 		capscale(
 			dissMat() ~ 1,
 			comm = datasetFile(),
@@ -57,6 +71,10 @@ shinyServer(function(input, output){
 	})
 
 	output$plot <- renderPlot({
+		
+		if(is.null(input$dataset))
+					return()
+					
 		plot(pcoa(), type = "n")
 		points(pcoa(), pch = 16, col = "red")
 		if( input$labels == TRUE){
@@ -64,11 +82,12 @@ shinyServer(function(input, output){
 			}
 	})
 
-	#output$stressplot <- renderPlot({
-		#stressplot(nmds())
-	#})
 
 	output$print <- renderPrint({
+		
+		if(is.null(input$dataset))
+					return(print("Please upload data"))
+					
 		print(pcoa())
 	})
 
@@ -98,27 +117,6 @@ shinyServer(function(input, output){
 	  },
 	  contentType = 'image/png'
 	)
-
-#output$downloadData.stressplot <- downloadHandler(
-	  #filename <- function() {
-		#paste('NMDS_stress_plot-', Sys.Date(), '.tiff', sep='')
-	  #},
-	  #content <- function(file) {
-		#tiff(
-			#file,
-			#width = 2000,
-			#height = 2000,
-			#units = "px",
-			#pointsize = 12,
-			#res = 300
-			#)
-			#
-		#stressplot(nmds())
-			#
-		#dev.off()
-	  #},
-	  #contentType = 'image/png'
-	#)
 
 
 	output$downloadData.dissMat <- downloadHandler(

@@ -26,6 +26,15 @@ shinyServer(function(input, output){
 # Transform data if requested...
 	transData <- reactive({
 	
+	if (is.null(input$dataset))
+				return()
+				
+	if(
+		!is.numeric(as.matrix(datasetFile())) &
+ 		input$transform != 'none'
+	)
+		stop("Non-numeric values detected! Transformation invalid.")
+				
 		if (input$transform == 'none'){
 			transData <- datasetFile()
 		} else {
@@ -39,6 +48,9 @@ shinyServer(function(input, output){
 
 # Perform PCA analysis
 	pca <- reactive({ 
+			
+	if (is.null(input$dataset))
+				return()
 		rda(
 			transData()
 		)
@@ -47,6 +59,10 @@ shinyServer(function(input, output){
 # Prepare output...
 
 	output$plot <- renderPlot({
+			
+	if (is.null(input$dataset))
+				return()
+				
 		biplot(
 			pca(),
  			type = input$labels,
@@ -56,18 +72,34 @@ shinyServer(function(input, output){
 	})
 
 	output$eigenvals <- renderPrint({
+		
+			if (is.null(input$dataset))
+				return(print("Please upload data"))
+				
 		eigenvals(pca())
 	})
 
 	output$print <- renderPrint({
+		
+			if (is.null(input$dataset))
+				return(print("Please upload data"))
+				
 		print(pca())
 	})
 
 	output$objectScores <- renderPrint({
+		
+			if (is.null(input$dataset))
+				return(print("Please upload data"))
+				
 		print(pca()$CA$u.eig)
 	})
 
 	output$variableScores <- renderPrint({
+		
+			if (is.null(input$dataset))
+				return(print("Please upload data"))
+				
 		print(pca()$CA$v.eig)
 	})
 

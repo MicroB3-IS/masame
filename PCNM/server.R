@@ -90,7 +90,7 @@ shinyServer(function(input, output){
 	
 		output$pcnmThresholdValueUI  <- renderUI({
 			
-			if(is.null(input$distance))
+			if(is.null(input$distance) | input$threshold == FALSE)
 				return()				
 			
 			numericInput(

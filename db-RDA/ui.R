@@ -9,33 +9,13 @@ shinyUI(
 	pageWithSidebar(
 		
 		# Header defintion
-		headerPanel("Perform a distance-based Redundancy Analysis..."),
+		headerPanel("Perform a (partial) distance-based Redundancy Analysis..."),
 		
 		# Sidebar defintion
 		sidebarPanel(
 			tabsetPanel(
-			tabPanel("Data upload", 
-				
-				
-				fileInput(
-					inputId = 'dataset', 
-					label = 'Select a CSV file with a table of objects (sites, samples, etc) as rows and response variables as columns.',
-					accept = c('text/csv','text/comma-separated-values','.csv')
-					),
-				
-				
-				fileInput(
-					'explanatoryVars', 
-					'Select a CSV file with a table of objects (sites, samples, etc) as rows and explanatory variables as columns. Factor levels should have at least one non-numeric character. Numeric variables should have values that are solely numbers with no whitespace. Note: all columns will be used as contraints!',
-					accept = c('text/csv','text/comma-separated-values','.csv')
-					),
-				
-				fileInput(
-					'strata', 
-					'If your objects are stratified (e.g. nested), select the CSV file which specifes which rows belong to each stratum. Strata should be represented by integers.',
-					accept = c('text/csv','text/comma-separated-values','.csv')
-					),
-				
+			tabPanel("Data upload",
+ 				
 				# Parameters for read.csv...
 				checkboxInput('header', 'Header', TRUE),
 				
@@ -44,7 +24,7 @@ shinyUI(
 					value = 1,
 					min = 0,
  					label = 'In each file, which column contains row lables (enter "0" if there are no such columns)?'
-					),
+				),
 				
 				radioButtons(
 					inputId = 'sep',
@@ -53,8 +33,8 @@ shinyUI(
 						Comma = ',',
 						Semicolon = ';',
 						Tab = '\t'
-						)
-					),
+					)
+				),
 				
 				radioButtons(
 					inputId = 'quote',
@@ -63,12 +43,91 @@ shinyUI(
 						'Double quotes' = '"',
 						'Single quotes' = "'",
 						'None' = ''
-						)
 					)
+				)
+			), # End CSV parameter UI
+				
+				# File Upload UI
+				fileInput(
+					inputId = 'dataset', 
+					label = 'Select a CSV file with a table of objects (sites, samples, etc) as rows and response variables as columns.',
+					accept = c('text/csv','text/comma-separated-values','.csv')
 				),
+				
+				
+				fileInput(
+					'explanatoryVars', 
+					'Select a CSV file with a table of objects (sites, samples, etc) as rows and explanatory variables as columns. Factor levels should have at least one non-numeric character. Numeric variables should have values that are solely numbers with no whitespace. Note: all columns will be used as contraints!',
+					accept = c('text/csv','text/comma-separated-values','.csv')
+				),
+				
+				fileInput(
+					'conditioningVars', 
+					'Select a CSV file with a table of objects (sites, samples, etc) as rows and conditioning variables as columns. Factor levels should have at least one non-numeric character. Numeric variables should have values that are solely numbers with no whitespace.',
+					accept = c('text/csv','text/comma-separated-values','.csv')
+				),
+				
+				# Select the conditioning variables of interest...
+				
+				htmlOutput("whichCondVarsUI"),
+				
+				fileInput(
+					'strata', 
+					'If your objects are stratified (e.g. nested), select the CSV file which specifes which rows belong to each stratum. Strata should be represented by integers.',
+					accept = c('text/csv','text/comma-separated-values','.csv')
+				),
+				
+				# End file upload UI
+				
+				
 			
 			# Only show this panel if the 
    tabPanel(
+      "Data transformations",
+					
+			# Should the data be transformed? Input for decostand()
+			radioButtons(
+				inputId = 'transform',
+				label = 'If needed, select a transformation for your response data...',
+				choices = c(
+					'No transformation' = 'none',
+					'Z score' = 'standardize',
+					'Chi square' = 'chi.square',
+					'Hellinger' = 'hellinger'
+					)
+				),
+
+			# Scale variables to unit variance?
+			checkboxInput('scaleVars', 'Would you like to scale your response variables to unit variance?', FALSE),
+
+			
+			# Should the explanatory data be transformed? Input for decostand()
+			radioButtons(
+				inputId = 'expTransform',
+				label = 'If needed, select a transformation for your explanatory variables...',
+				choices = c(
+					'No transformation' = 'none',
+					'Z score' = 'standardize',
+					'Chi square' = 'chi.square',
+					'Hellinger' = 'hellinger'
+					)
+				),
+			
+			# Should the conditioning variables be transformed? Input for decostand()
+			radioButtons(
+				inputId = 'condTransform',
+				label = 'If needed, select a transformation for your conditioning variables...',
+				choices = c(
+					'No transformation' = 'none',
+					'Z score' = 'standardize',
+					'Chi square' = 'chi.square',
+					'Hellinger' = 'hellinger'
+					)
+				)
+			
+		),
+
+	tabPanel(
       "PCoA parameters...",
 			# Parameters for metaMDS...
 			# Select dissimilarity measure
@@ -149,8 +208,11 @@ shinyUI(
 		tabPanel(
 			"Download results...",
 			downloadButton('downloadData.dissMat', 'Download dissimilarity matrix...'),
+			br(),
 			downloadButton('downloadData.plot', 'Download ordination...'),
+			br(),
 			downloadButton('downloadData.objectCoordinates', 'Download object coordinates...'),			
+			br(),
 			downloadButton('downloadData.variableCoordinates', 'Download variable coordinates...')	
 			)
 		)
