@@ -51,6 +51,7 @@ shinyServer(function(input, output){
 	})
 
 	conditioningFile <- reactive({
+		
 		conFile <- conditioningInput()
 	
 		if (is.null(conFile))
@@ -67,8 +68,13 @@ shinyServer(function(input, output){
 
 # Generate UI element to select which conditioning variables should be used...
 #reactive ({
-	#if (!is.null(conditioningFile())){
+	
+		
 		output$whichCondVarsUI <- renderUI({
+			
+			if (is.null(input$conditioningVars))
+				return()
+				
 				checkboxGroupInput(
 					inputId = "whichCondVars", 
 					label = "Select at least one of your conditioning variables:",
@@ -101,7 +107,16 @@ shinyServer(function(input, output){
 
 # Transform response data if requested...
 	transData <- reactive({
-	
+		
+		if(is.null(input$dataset))
+				return()
+		
+		if(
+			!is.numeric(as.matrix(datasetFile())) &
+ 			input$transform != 'none'
+		)
+			stop("Non-numeric values detected! Transformation invalid.")
+		
 		if (input$transform == 'none'){
 			transData <- datasetFile()
 		} else {
@@ -115,7 +130,18 @@ shinyServer(function(input, output){
 
 # Transform explanatory data if requested...
 	transExpData <- reactive({
-	
+		
+		if(is.null(input$explanatoryVars))
+				return()
+		
+		if(
+			!is.numeric(as.matrix(explanatoryFile())) &
+ 			input$expTransform != 'none'
+		)
+			stop("Non-numeric values detected! Transformation invalid.")
+		# A useful future enhancement: allow users to select variables to
+		# transform.
+		
 		if (input$expTransform == 'none'){
 			transExpData <- explanatoryFile()
 		} else {
@@ -129,7 +155,18 @@ shinyServer(function(input, output){
 
 # Transform conditioning data if requested...
 	transCondData <- reactive({
-	
+
+		if (is.null(input$conditioningVars))
+			return()
+		
+		if(
+			!is.numeric(as.matrix(conditioningFile()[, input$whichCondVars])) &
+ 			input$condTransform != 'none'
+		)
+			stop("Non-numeric values detected! Transformation invalid.")
+		# The controls above work in general, but fail if there is only one
+		# conditioning variable. TODO: Figure out why and how to fix.
+		
 		if (input$condTransform == 'none'){
 			transCondData <- conditioningFile()
 		} else {
@@ -148,6 +185,10 @@ shinyServer(function(input, output){
 
 # Calculate CCA solution...
 ccaSol <- reactive({
+	
+	if (is.null(input$dataset) | is.null(input$explanatoryVars))
+		return()
+	
 	if (is.null(transCondData()) | is.null(input$whichCondVars) ){
 		cca(
 			transData() ~ .,
@@ -177,6 +218,10 @@ ccaSol <- reactive({
 
 # Test significance of model
 anova <- reactive({
+	
+	if (is.null(input$dataset) | is.null(input$explanatoryVars))
+		return()
+	
 	if(is.null(strataFile())){
  			anova.cca(
 				ccaSol()
@@ -194,6 +239,9 @@ anova <- reactive({
 
 # Generate plot...
 	output$plot <- renderPlot({
+		
+		if (is.null(input$dataset) | is.null(input$explanatoryVars))
+			return()
 		
 		if (input$display == "both") {
 		ordiplot(
@@ -215,11 +263,20 @@ anova <- reactive({
 
 # Generate summary of CCA solution...
 	output$print <- renderPrint({
+		
+		if (is.null(input$dataset) | is.null(input$explanatoryVars))
+			print("Please upload data for analysis")
+			
 		print(summary(ccaSol()))
 	})
 
+
 # Generate output of significance testing
 	output$printSig <- renderPrint({
+		
+		if (is.null(input$dataset) | is.null(input$explanatoryVars))
+			print("Please upload data for analysis")
+		
 		print(anova())
 })
 

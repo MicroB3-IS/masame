@@ -7,25 +7,17 @@ shinyUI(
 	pageWithSidebar(
 		
 		# Header defintion
-		headerPanel("Perform a Principal Components Analysis..."),
+		headerPanel("Perform a principal components analysis..."),
 		
 		# Sidebar defintion
 		sidebarPanel(
 			tabsetPanel(
-			tabPanel("Data upload", 
-				fileInput(
-					inputId = 'dataset', 
-					label = 'Select a CSV file to upload for analysis...',
-					accept = c('text/csv','text/comma-separated-values','.csv')
-					),
-				
-				# TODO: See how this can be done
-				#fileInput(
-					#'metadata', 
-					#'If you would like to use additional data for modifying your plot (e.g. colouring points) upload a single column CSV file here...',
-					#accept = c('text/csv','text/comma-separated-values','.csv')
-					#),
-				
+			tabPanel("Data upload",
+ 				h5("Description"),
+				p("This App will perform a PCA using the rda() function from the vegan package for R. Transformations are performed by decostand(), also from vegan"),
+				h5("CSV parameters"),
+				p("Note that these parameters apply to all files uploaded. If your files are not correctly formatted, errors will result."),
+			
 				# Parameters for read.csv...
 				checkboxInput('header', 'Header', TRUE),
 				
@@ -54,14 +46,25 @@ shinyUI(
 						'Single quotes' = "'",
 						'None' = ''
 						)
-					)
-				),
-			
-			# Only show this panel if the 
-   tabPanel(
-      "PCA parameters...",
-			# Parameters for PCA...
-			
+					),
+				
+				h5("Upload file"),
+				fileInput(
+					inputId = 'dataset', 
+					label = 'Select a CSV file to upload for analysis...',
+					accept = c('text/csv','text/comma-separated-values','.csv')
+				)
+				
+				# TODO: See how this can be done
+				#fileInput(
+					#'metadata', 
+					#'If you would like to use additional data for modifying your plot (e.g. colouring points) upload a single column CSV file here...',
+					#accept = c('text/csv','text/comma-separated-values','.csv')
+					#),
+	), # End data upload tab
+
+	tabPanel(
+      "Transformations",
 			# Should the data be transformed? Input for decostand()
 			radioButtons(
 				inputId = 'transform',
@@ -71,9 +74,13 @@ shinyUI(
 					'Z score' = 'standardize',
 					'Chi square' = 'chi.square',
 					'Hellinger' = 'hellinger'
-					)
-				),
-			
+				)
+			)
+	),
+   
+	tabPanel(
+      "PCA parameters",
+			# Parameters for PCA...
 			
 			# Type of scaling to use...
 			radioButtons(
@@ -86,6 +93,7 @@ shinyUI(
 				),
 			
 			# Label points?
+			h5("Graphical parameters"),
 			radioButtons(
 				inputId = 'labels',
 				label = 'Would you like points to be labeled?',
@@ -93,32 +101,35 @@ shinyUI(
 					'Yes' = "text",
 					'No' = "points"
 					)
-				)
+			)
 			
-			),
+		),
 		
 		tabPanel(
 			"Download results...",
 			downloadButton('downloadData.plot', 'Download plot...'),
+			br(),
 			downloadButton('downloadData.objectScores', 'Download object scores...'),
+			br(),
 			downloadButton('downloadData.variableScores', 'Download variable scores...')
 			)
-		)
-	),
-			# Main panel defintion
-			# TODO: Use tabPanels for plots and numeric result output
-			# See if conditionalPanel works for relevant parameters
-			mainPanel(
-				tabsetPanel(
-					tabPanel("Plot", plotOutput("plot")),
-					tabPanel("Summary", verbatimTextOutput("print")),
-					tabPanel("Eigenvalues", verbatimTextOutput("eigenvals")),
-					tabPanel("Object scores", verbatimTextOutput("objectScores")),
-					tabPanel("Variable scores", verbatimTextOutput("variableScores"))#,
-					#tabPanel("Table", tableOutput("table")
-					)
-				)
+		) # End tabSetPanel
+	), # End sidebarPanel
 
-			)
+	# Main panel defintion
+	# TODO: Use tabPanels for plots and numeric result output
+	# See if conditionalPanel works for relevant parameters
+	mainPanel(
+		tabsetPanel(
+			tabPanel("Plot", plotOutput("plot")),
+			tabPanel("Summary", verbatimTextOutput("print")),
+			tabPanel("Eigenvalues", verbatimTextOutput("eigenvals")),
+			tabPanel("Object scores", verbatimTextOutput("objectScores")),
+			tabPanel("Variable scores", verbatimTextOutput("variableScores"))#,
+			#tabPanel("Table", tableOutput("table")
 		)
+	)
+
+			) # End pageWithSidebar
+		) # End shinyUI
 	#)

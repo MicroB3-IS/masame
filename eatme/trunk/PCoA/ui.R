@@ -7,24 +7,16 @@ shinyUI(
 	pageWithSidebar(
 		
 		# Header defintion
-		headerPanel("Perform a Principal Coordinates Analysis..."),
+		headerPanel("Perform a principal coordinates analysis..."),
 		
 		# Sidebar defintion
 		sidebarPanel(
 			tabsetPanel(
 			tabPanel("Data upload", 
-				fileInput(
-					inputId = 'dataset', 
-					label = 'Select a CSV file to upload for analysis...',
-					accept = c('text/csv','text/comma-separated-values','.csv')
-					),
-				
-				# TODO: See how this can be done
-				#fileInput(
-					#'metadata', 
-					#'If you would like to use additional data for modifying your plot (e.g. colouring points) upload a single column CSV file here...',
-					#accept = c('text/csv','text/comma-separated-values','.csv')
-					#),
+				h5("Description"),
+				p("This App will perform a PCoA using the capscale() function from the vegan package for R. Dissimilarities are computed by vegdist() {vegan} or, should a flexible shortest path data transformation be requested, by metaMDSdist() {vegan}."),
+				h5("CSV parameters"),
+				p("Note that these parameters apply to all files uploaded. If your files are not correctly formatted, errors will result."),
 				
 				# Parameters for read.csv...
 				checkboxInput('header', 'Header', TRUE),
@@ -54,7 +46,23 @@ shinyUI(
 						'Single quotes' = "'",
 						'None' = ''
 						)
+					),
+				
+				h5("Data upload"),
+				
+				fileInput(
+					inputId = 'dataset', 
+					label = 'Select a CSV file to upload for analysis...',
+					accept = c('text/csv','text/comma-separated-values','.csv')
 					)
+				
+				# TODO: Future enhancement...
+				#fileInput(
+					#'metadata', 
+					#'If you would like to use additional data for modifying your plot (e.g. colouring points) upload a single column CSV file here...',
+					#accept = c('text/csv','text/comma-separated-values','.csv')
+					#),
+				
 				),
 			
 			# Only show this panel if the 
@@ -62,6 +70,8 @@ shinyUI(
       "PCoA parameters...",
 			# Parameters for metaMDS...
 			# Select dissimilarity measure
+			h5("Dissimilarity"),
+			
 			radioButtons(
 				inputId = 'dissim',
 				label = 'Select a dissimilarity measure',
@@ -83,6 +93,7 @@ shinyUI(
 				),
 			
 			# Correction method 2 for negative eigenvalues
+			h5("Negative eigenvalues"),
 			radioButtons(
 				inputId = 'correctionMethod2',
 				label = 'Should negative eigenvalues be corrected by the addition of a constant to non-diagonal dissimilarities?',
@@ -93,6 +104,7 @@ shinyUI(
 				),
 			
 			# metaMDSdist autoscaling
+			h5("FSP transformation"),
 			radioButtons(
 				inputId = 'autoTransform',
 				label = 'Should a flexible shortest path data transformation be attempted? This may help estimate dissimilarities between sites with no variables in common, but should be used with caution.',
@@ -102,6 +114,7 @@ shinyUI(
 					)
 				),
 			
+			h5("Graphical parameters"),
 			# Label points?
 			checkboxInput('labels', 'Label points?', FALSE)
 			),
@@ -110,15 +123,16 @@ shinyUI(
 		tabPanel(
 			"Download results...",
 			downloadButton('downloadData.dissMat', 'Download dissimilarity matrix...'),
+			br(),
 			downloadButton('downloadData.plot', 'Download ordination...'),
-			downloadButton('downloadData.objectCoordinates', 'Download object coordinates...'),			
+			br(),
+			downloadButton('downloadData.objectCoordinates', 'Download object coordinates...'),
+			br(),			
 			downloadButton('downloadData.variableCoordinates', 'Download variable coordinates...')	
 			)
 		)
 	),
 			# Main panel defintion
-			# TODO: Use tabPanels for plots and numeric result output
-			# See if conditionalPanel works for relevant parameters
 			mainPanel(
 				tabsetPanel(
 					tabPanel("Plot", plotOutput("plot")),
@@ -129,4 +143,3 @@ shinyUI(
 
 			)
 		)
-	#)

@@ -10,14 +10,18 @@ shinyUI(
 	pageWithSidebar(
 			
 		# Header defintion
-		headerPanel("Perform a PCNM (MEM) analysis..."),
+		headerPanel("Perform a principal coordinates of neighbour matrices (PCNM) analysis..."),
 		
 		# Sidebar defintion
 		sidebarPanel(
 			tabsetPanel(
 				tabPanel("Data upload...",
+					h5("Description"),
+					p("This App will perform an PCNM analysis using the pcnm() function from the vegan package for R. Euclidean distances are calculated using the dist() {stats} function."),
+					h5("CSV parameters"),
+					p("Note that these parameters apply to all files uploaded. If your files are not correctly formatted, errors will result."),
 					
-					strong("Both uploaded files must have the same format, including headers and row names."),
+					
 					# Parameters for read.csv...
 					checkboxInput('header', 'Header', TRUE),
 					
@@ -49,6 +53,7 @@ shinyUI(
 					),					
 					
 					# Upload distance file
+					h5("Distance data"),
 					fileInput(
 						inputId = 'distance', 
 						label = 'Select a CSV file of spatial or temporal distances between your objects...',
@@ -63,7 +68,8 @@ shinyUI(
 						#'An additional dataset for ordination through CCA...',
 						#accept = c('text/csv','text/comma-separated-values','.csv')
 						#),
-						
+					
+					h5("Weight data"),	
 					fileInput(
 						inputId = 'weights', 
 						label = 'If applicable, select a CSV file with a single column of weights for each object in your distance file to perform a weighted PCNM analysis...',
@@ -75,6 +81,7 @@ shinyUI(
 					
 				tabPanel("PCNM parameters...",	# Parameters for PCNM...
 					
+					h5("Custom distance threshold"),
 					checkboxInput(
 						inputId = 'threshold',
  						label = 'Would you like to use a custom distance threshold? By default, the minimum distance required to ensure all points are connected is used to truncate the Euclidean distance matrix used in PCNM. Larger distances are set to four times the truncation distance.',

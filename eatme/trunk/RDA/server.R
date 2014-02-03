@@ -67,15 +67,22 @@ shinyServer(function(input, output){
 	})
 
 # Generate UI element to select which conditioning variables should be used...
-#reactive ({
-	#if (!is.null(conditioningFile())){
+
 		output$whichCondVarsUI <- renderUI({
+			
+			if (is.null(input$conditioningVars)){
+				
+				HTML("") # Just some blank space
+				
+				} else {
+				
 				checkboxGroupInput(
 					inputId = "whichCondVars", 
-					label = "Select at least one of your conditioning variables:",
+					label = "Select at least one of your conditioning variables to be included in the analysis:",
 					choices = names(conditioningFile()),
 					selected = names(conditioningFile())
 					)
+				}
 		})
 	#}
 #})
@@ -102,6 +109,15 @@ shinyServer(function(input, output){
 
 # Transform data if requested...
 	transData <- reactive({
+		
+		if(is.null(input$dataset))
+				return()
+		
+		if(
+			!is.numeric(as.matrix(datasetFile())) &
+ 			input$transform != 'none'
+		)
+			stop("Non-numeric values detected! Transformation invalid.")
 	
 		if (input$transform == 'none'){
 			transData <- datasetFile()
@@ -116,6 +132,17 @@ shinyServer(function(input, output){
 
 # Transform explanatory data if requested...
 	transExpData <- reactive({
+		
+		if(is.null(input$explanatoryVars))
+				return()
+		
+		if(
+			!is.numeric(as.matrix(explanatoryFile())) &
+ 			input$expTransform != 'none'
+		)
+			stop("Non-numeric values detected! Transformation invalid.")
+		# A useful future enhancement: allow users to select variables to
+		# transform.
 	
 		if (input$expTransform == 'none'){
 			transExpData <- explanatoryFile()
@@ -130,16 +157,27 @@ shinyServer(function(input, output){
 
 # Transform conditioning data if requested...
 	transCondData <- reactive({
-	
+			
+		if(is.null(input$conditioningVars))
+				return()
+		
+		if(
+			!is.numeric(as.matrix(conditioningFile()[, input$whichCondVars])) &
+ 			input$condTransform != 'none'
+		)
+			stop("Non-numeric values detected! Transformation invalid.")
+		# The controls above work in general, but fail if there is only one
+		# conditioning variable. TODO: Figure out why and how to fix.
+		
 		if (input$condTransform == 'none'){
 			transCondData <- conditioningFile()
 		} else {
 			decostand(
-				conditioningFile(),
+				conditioningFile()[, input$whichCondVars],
 				method = input$condTransform,
 			)
 		}
-			
+		
 	})
 
 
@@ -147,6 +185,10 @@ shinyServer(function(input, output){
 # Add textInput to ui allowing users to select columns of the explanatoryFile
 	
 	rdaSol <- reactive({ 
+		
+		if (is.null(input$dataset) | is.null(input$explanatoryVars) )
+			return()
+			
 		if (is.null(transCondData()) | is.null(input$whichCondVars) ){
 			rda(
 				formula = transData() ~ .,
@@ -194,6 +236,9 @@ anova <- reactive({
 
 	output$plot <- renderPlot({
 		
+		if (is.null(input$dataset) | is.null(input$explanatoryVars))
+		 return()
+		
 		if (input$display == "both") {
 		ordiplot(
 			rdaSol(),
@@ -214,10 +259,18 @@ anova <- reactive({
 
 
 	output$print <- renderPrint({
+		
+		if (is.null(input$dataset) | is.null(input$explanatoryVars))
+		 return(print("Please upload data"))
+		
 		print(summary(rdaSol()))
 		})
 
 	output$printSig <- renderPrint({
+		
+		if (is.null(input$dataset) | is.null(input$explanatoryVars))
+		 return(print("Please upload data"))
+		
 		print(anova())
 		})
 
