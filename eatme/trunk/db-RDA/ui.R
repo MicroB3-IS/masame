@@ -233,8 +233,6 @@ shinyUI(
 		)
 	),
 			# Main panel defintion
-			# TODO: Use tabPanels for plots and numeric result output
-			# See if conditionalPanel works for relevant parameters
 			mainPanel(
 				tabsetPanel(
 					tabPanel("Plot", plotOutput("plot")),
