@@ -14,16 +14,15 @@ shinyUI(
 			tabsetPanel(
 			tabPanel("Data upload",
 			
-			strong("Please upload a numeric data set. Non-numeric values will result in an error."),
+			h5("Description"),
+				p("This App will perform univariate Shapiro-Wilk tests on each variable (column) in your data set using the shapiro.test() function from the stats package for R. A multivariate Shapiro-Wilk test is performed on your entire data set using the mshapiro.test() function from the mvnormtest library. Transformations are performed by decostand() and wisconsin() {vegan} as well as standard R functions."),
+				p("In general, it is unlikely that ecological data will be normally distributed. Examining boxplots and histograms and using transformations to render the data 'near-normal' (e.g. symmetric, with no major outliers) is often more realistic."),
+				h5("CSV parameters"),
+				p("Note that these parameters apply to all files uploaded. If your files are not correctly formatted, errors will result."),
+				strong("Please upload a numeric data set. Non-numeric values will result in errors."),
 			br(),
 			br(),
 			
-			fileInput(
-				'dataset', 
-				'Select a CSV file to upload for analysis...',
-				accept = c('text/csv','text/comma-separated-values','.csv')
-				),
-		
 			checkboxInput('header', 'Header', TRUE),
 			radioButtons(
 				inputId = 'sep',
@@ -51,7 +50,14 @@ shinyUI(
 					'Single quotes' = "'"
 				),
 				selected = 'Double quotes'
-			)
+			),
+		
+			h5("Upload data"),
+			fileInput(
+				'dataset', 
+				'Select a CSV file to upload for analysis...',
+				accept = c('text/csv','text/comma-separated-values','.csv')
+				)
 		
 			), # End data upload tab
 			
@@ -60,6 +66,7 @@ shinyUI(
 			tabPanel("Boxplots",
 			
 				#Slider controls which columns are plotted
+				p("Move the sliders to select a range of variables to plot."),
 				htmlOutput("boxPlotRangeUI")
 
 			),

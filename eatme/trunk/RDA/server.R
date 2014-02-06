@@ -84,8 +84,6 @@ shinyServer(function(input, output){
 					)
 				}
 		})
-	#}
-#})
 
 # Handle uploaded strata data...
 	strataInput <- reactive({		
@@ -159,7 +157,7 @@ shinyServer(function(input, output){
 	transCondData <- reactive({
 			
 		if(is.null(input$conditioningVars))
-				return()
+			return()
 		
 		if(
 			!is.numeric(as.matrix(conditioningFile()[, input$whichCondVars])) &
@@ -172,10 +170,25 @@ shinyServer(function(input, output){
 		if (input$condTransform == 'none'){
 			transCondData <- conditioningFile()
 		} else {
-			decostand(
-				conditioningFile()[, input$whichCondVars],
-				method = input$condTransform,
+		
+			selectedVars <- which(
+				colnames(conditioningFile())
+ 				%in% 
+				input$whichCondVars
 			)
+		
+			# Store solution to apply colnames
+			temp <- decostand(
+				as.data.frame(
+					conditioningFile()[, selectedVars]
+				),
+				method = input$condTransform
+			)
+			# Attempt to conserve colnames should only 1 var be selected.
+			colnames(temp) <- colnames(conditioningFile())[selectedVars]
+			
+			temp
+			
 		}
 		
 	})
@@ -189,25 +202,25 @@ shinyServer(function(input, output){
 		if (is.null(input$dataset) | is.null(input$explanatoryVars) )
 			return()
 			
-		if (is.null(transCondData()) | is.null(input$whichCondVars) ){
+		if (is.null(input$conditioningVars) | is.null(input$whichCondVars) ){
 			rda(
 				formula = transData() ~ .,
  				data = transExpData(),
  				scale = input$scaleVars
 				)
-		} else {
+		} else if (!is.null(input$conditioningVars)) {
 			rda(
 				formula = as.formula(
-				paste(
-					"transData() ~ . + Condition(",
-						paste(
-							'transCondData()[,"', 
-							sapply(input$whichCondVars, FUN = paste0),
-							'"]',
-							sep = "",
-							collapse = " + "
-							),
-					")"
+					paste(
+						"transData() ~ . + Condition(",
+							paste(
+								'transCondData()[,"',
+								sapply(input$whichCondVars, FUN = paste0),
+								'"]',
+								sep = "",
+								collapse = " + "
+								),
+						")"
 					)
 				),
  				data = transExpData(),

@@ -35,6 +35,11 @@ shinyServer(
 		
 			if(is.null(input$dataset))
 				return()
+				
+			if(
+				!is.numeric(as.matrix(datasetFile()))
+			)
+				stop("Non-numeric values detected! Calculations aborted.")
 		
 			if (input$transform == 'none' | is.null(input$transform)){
 				datasetFile()
@@ -170,7 +175,7 @@ shinyServer(
 			
 			paste(
 				dim(corrCoords())[1]/2,
-				"out of",
+				"pairs of variables out of a set of",
 				dim(transData())[2],
 				"variables were found to have a correlation greater than",
 				input$corrThreshold,

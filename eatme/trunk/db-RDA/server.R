@@ -67,6 +67,7 @@ shinyServer(function(input, output){
 
 # Generate UI element to select which conditioning variables should be used...
 		output$whichCondVarsUI <- renderUI({
+			
 			if (is.null(conditioningFile()))
 					return()
 					
@@ -129,7 +130,7 @@ shinyServer(function(input, output){
 			return()
 		
 		if(
-			!is.numeric(as.matrix(exFile())) &
+			!is.numeric(as.matrix(explanatoryFile())) &
  			input$expTransform != 'none'
 		)
 			stop("Non-numeric values detected! Transformation invalid.")
@@ -151,14 +152,38 @@ shinyServer(function(input, output){
 		
 		if(is.null(input$conditioningVars))
 			return()
+			
+		if(
+			!is.numeric(as.matrix(conditioningFile()[, input$whichCondVars])) &
+ 			input$condTransform != 'none'
+		)
+			stop("Non-numeric values detected! Transformation invalid.")
+		# The controls above work in general, but fail if there is only one
+		# conditioning variable. TODO: Figure out why and how to fix.
 	
-		if (input$condTransform == 'none' | is.null(input$condTransform)){
+		if (input$condTransform == 'none'){
 			transCondData <- conditioningFile()
 		} else {
-			decostand(
-				conditioningFile(),
-				method = input$condTransform,
+		
+			selectedVars <- which(
+				colnames(conditioningFile())
+ 				%in% 
+				input$whichCondVars
 			)
+			
+			# Store solution to apply colnames
+			temp <- decostand(
+				as.data.frame(
+					conditioningFile()[ , selectedVars]
+				),
+				method = input$condTransform
+			)
+		
+			# Attempt to conserve colnames should only 1 var be selected.
+			colnames(temp) <- colnames(conditioningFile())[selectedVars]
+		
+		temp
+		
 		}
 			
 	})
@@ -176,14 +201,14 @@ shinyServer(function(input, output){
 						transData(),
 						distance = input$dissim # vegdist is used here
 						)
-					} else {
-							vegdist(
-								transData(),
-								method = input$dissim,
-								binary = ifelse(input$dissim == 'jaccard', TRUE, input$presAbs)
-								)
+				} else {
+					vegdist(
+						transData(),
+						method = input$dissim,
+						binary = ifelse(input$dissim == 'jaccard', TRUE, input$presAbs)
+						)
 						
-					}
+				}
 			})
 
 # TODO: Priortiy: important
@@ -195,36 +220,62 @@ shinyServer(function(input, output){
 		if (is.null(input$dataset) | is.null(input$explanatoryVars))
 					return()
 		
-		if 	(is.null(input$conditioningVars)){	
+		if 	(
+			!is.null(input$conditioningVars) &
+			!is.null(input$whichCondVars)
+			){	
+				
+		# capscale() is unable to handle formulae like rda()
+		# and uses some sort of subenvironment for its formulae
+		# This results in an inability to find reactive objects
+		# defined in the shinyServer to subset (as in RDA) and
+		# errors like:
+		#	Error in eval(expr, envir, enclos) : 
+		#	could not find function "transExpData"
+		# are returned. To work around this (rather than tackling
+		# environments) the following code will bind the explanatory
+		# and conditional variables and use the resulting object as
+		# the input for capscale()'s data argument. The variables
+		# are then pasted into a string by name. The string is 
+		# then fed into capscale() as a formula.
 			
-			capscale(
+			condExpData <- cbind(transExpData(), transCondData())
+			expVars <- names(transExpData())
+			
+			f.text <- paste(
+							"dissMat() ~ ",
+							paste(
+									sapply(expVars, FUN = paste0),
+									sep = "",
+									collapse = " + "
+									),
+							"+ Condition(",
+								paste(
+									sapply(input$whichCondVars, FUN = paste0),
+									sep = "",
+									collapse = " + "
+									),
+							")"
+						)
+					
+					
+				capscale(
+					formula = as.formula(f.text),
+					data = condExpData,
+					comm = transData(),
+					add = input$correctionMethod2
+				)
+		
+		} else {
+			
+		
+		capscale(
 				dissMat() ~ .,
 				data = transExpData(),
 				comm = transData(),
 				add = input$correctionMethod2
-				
 			)
-		} else if (!is.null(input$conditioningVars)){
-			
-			capscale(
-				formula = as.formula(
-					paste(
-						"dissMat() ~ . + Condition(",
-							paste(
-								'transCondData()[,"', 
-								sapply(input$whichCondVars, FUN = paste0),
-								'"]',
-								sep = "",
-								collapse = " + "
-								),
-						")"
-						)
-					),
-				data = transExpData(),
-				comm = transData(),
-				add = input$correctionMethod2
-				
-			)
+
 		}
 		
 	}) # End dbrda definition
@@ -274,7 +325,7 @@ anova <- reactive({
 	})
 
 
-# Pring dbrda summary
+# Print dbrda summary
 	output$print <- renderPrint({
 		
 		if(is.null(input$dataset) | is.null(input$explanatoryVars))
@@ -290,7 +341,6 @@ anova <- reactive({
 			print("Please upload data")
 			
 		print(anova())
-		print(dim(strataFile()))
 	})
 
 

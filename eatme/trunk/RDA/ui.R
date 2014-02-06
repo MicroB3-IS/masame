@@ -17,6 +17,7 @@ shinyUI(
 			tabPanel("Data upload", 
 				h5("Description"),
 				p("This App will perform an RDA using the rda() function from the vegan package for R. Transformations are performed by decostand(), also from vegan"),
+				
 				h5("CSV parameters"),
 				p("Note that these parameters apply to all files uploaded. If your files are not correctly formatted, errors will result."),
 				# Parameters for read.csv...
@@ -51,6 +52,7 @@ shinyUI(
 				
 				# Upload files...
 				h5("Response data"),
+				strong("This data set should contain only numeric variables."),
 				fileInput(
 					inputId = 'dataset', 
 					label = 'Select a CSV file with a table of objects (sites, samples, etc) as rows and response variables as columns.',
