@@ -2,7 +2,6 @@ library(shiny)
 
 ## ui.R
 
-# TODO: Add text saying that the data should already be pretreated (e.g. transformed)
 shinyUI(
 	pageWithSidebar(
 		
@@ -117,8 +116,6 @@ shinyUI(
 	), # End sidebarPanel
 
 	# Main panel defintion
-	# TODO: Use tabPanels for plots and numeric result output
-	# See if conditionalPanel works for relevant parameters
 	mainPanel(
 		tabsetPanel(
 			tabPanel("Plot", plotOutput("plot")),

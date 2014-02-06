@@ -211,7 +211,7 @@ shinyServer(function(input, output){
 				}
 			})
 
-# TODO: Priortiy: important
+# TODO:
 # capscale() does not perform constraint aliasing when running in the App, but
 # does this when running the R console. This changes the output! Must figure out why...
 

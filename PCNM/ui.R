@@ -4,7 +4,6 @@ library(shiny)
 
 ## ui.R
 
-# TODO: Add text saying that the data should already be pretreated (e.g. transformed)
 shinyUI(
 	
 	pageWithSidebar(
