@@ -172,7 +172,7 @@ shinyServer(function(input, output){
 		} else {
 			decostand(
 				conditioningFile(),
-				method = input$condTransform,
+				method = input$condTransform
 			)
 		}
 			

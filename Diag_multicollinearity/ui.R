@@ -14,12 +14,14 @@ shinyUI(
 			tabsetPanel(
 			tabPanel("Data upload",
 				
-			fileInput(
-				'dataset', 
-				'Select a CSV file to upload for analysis...',
-				accept = c('text/csv','text/comma-separated-values','.csv')
-				),
-		
+				h5("Description"),
+				p("This App will use the rcorr() function from the Hmisc package for R to screen your data set for multicollinear variables. Transformations are performed by decostand() and wisconsin() from the vegan package as well as several standard functions. Visualisations are included as they are typically more informative than simple statistics."),
+				strong("Only numeric variables will be screened. Uploading a data set with non-numeric values will result in errors."),
+				
+				
+				h5("CSV parameters"),
+				p("Note that these parameters apply to all files uploaded. If your files are not correctly formatted, errors will result."),
+				
 			checkboxInput('header', 'Header', TRUE),
 			radioButtons(
 				inputId = 'sep',
@@ -47,6 +49,13 @@ shinyUI(
 					'Single quotes' = "'"
 				),
 				selected = 'Double quotes'
+			),
+			
+			h5("Upload data"),
+			fileInput(
+				'dataset', 
+				'Select a CSV file to upload for analysis...',
+				accept = c('text/csv','text/comma-separated-values','.csv')
 			)
 		
 			), # End data upload tab
@@ -54,9 +63,9 @@ shinyUI(
 			# 
 			
 			tabPanel("Test parameters...",
-			
+				h5("Methods & thresholds"),
 				p("Set the correlation and significance thresholds appropriate for your purposes below."),
-				p("Note: no corrections for multiple testing are performed!"),
+				strong("Note: no corrections for multiple testing are performed!"),
 				br(),
 				
 				radioButtons(
@@ -93,6 +102,7 @@ shinyUI(
 			tabPanel("Boxplots",
 			
 				#Slider controls which columns are plotted
+				p("Move the sliders to select a range of variables to plot."),
 				htmlOutput("boxPlotRangeUI")
 
 			),
@@ -101,6 +111,7 @@ shinyUI(
 			tabPanel("Scatter plots",
 			
 				#Slider controls which columns are plotted
+				p("Select a set of variables to plot in a scatter plot matrix. The diagonal will display variable names. The lower triangle of the matrix will display plots while the upper triangle will display their associated correlation coefficients."),
 				htmlOutput("scatterPlotRangeUI")
 
 			),
@@ -108,7 +119,7 @@ shinyUI(
  			tabPanel("Transformations",
 				
 				p("If needed, select a transformation to apply to your data."),
-				p("Note that many of these transformation will be invalid if there are negative values in your data!"),
+				strong("Note that many of these transformation will be invalid if there are negative values in your data!"),
 				br(),
 				
 

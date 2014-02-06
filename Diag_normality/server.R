@@ -88,8 +88,19 @@ shinyServer(
 				
 			if (is.null(input$dataset))
 				return()
-					
-			mshapiro.test(as.matrix(transData())) # requires library mvnormtest
+				
+				mShapTemp <- NULL
+				mShapTemp <- try(
+					mshapiro.test(as.matrix(transData())), # requires library mvnormtest
+					silent = TRUE
+					)		
+				
+				if (class(mShapTemp) != "htest"){
+					c("FAIL!")
+				} else {
+				mShapTemp
+				}
+				
 		})
 
 		# Test each individual parameter
@@ -294,16 +305,23 @@ shinyServer(
 			
 			if(is.null(input$dataset))
 					return("Please upload data")
-			cat(	
-				paste(
-					"\nA multivariate Shapiro-Wilk test returned a p-value of:",
-					mshapiroTest()$p.value,
- 					"Your p-value threshold was:",
- 					input$mshapThreshold,
-					"\n",
-					sep = " "
-				)
-			)
+			
+			# As tryCatch() returns odd results, some logic to return 
+			# custom error if mshapiro.test fails		
+			if (class(mshapiroTest()) != "htest"){
+					c("Multivariate Shapiro-Wilk test failed to complete. Your data may be unsuitable for calculation (e.g. lead to a computationally singular state).")
+				} else {					
+					cat(	
+						paste(
+							"\nA multivariate Shapiro-Wilk test returned a p-value of:",
+							mshapiroTest()$p.value,
+ 							"Your p-value threshold was:",
+ 							input$mshapThreshold,
+							"\n",
+							sep = " "
+						)
+					)
+				}
 		})
 		
 # Prepare downloads
