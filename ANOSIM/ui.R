@@ -16,10 +16,15 @@ shinyUI(
 			tabPanel("Data upload", 
 				h5("Description"),
 				p("This App will perform an ANOSIM using the anosim() function from the vegan package for R. Transformations are performed by decostand() and wisconsin() {vegan}, as well as some base R functions. Dissimilarity matrices are calculated by vegdist(){vegan}."),
+				br(),
+				# Parameters for read.csv...
+				h5("Example data"),
+				p("Tick the box below if you'd like to use the 'mite' dataset included in the vegan package as an example. Groups are defined by levels of the associated environmental variable, shrub density."),
+				checkboxInput('useExampleData', 'Use an example dataset', FALSE),
+				
+				br(),
 				h5("CSV parameters"),
 				p("Note that these parameters apply to all files uploaded. If your files are not correctly formatted, errors will result."),
-				
-				# Parameters for read.csv...
 				checkboxInput('header', 'Header', TRUE),
 				
 				numericInput(

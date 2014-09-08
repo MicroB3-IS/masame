@@ -3,6 +3,7 @@
 library(shiny)
 library(vegan)
 library(mvnormtest)
+data(mite)
 # library(car) # needed if Box Cox and related power transformations will be used
 
 # For testing purposes...
@@ -21,6 +22,9 @@ shinyServer(
 	})
 
 	datasetFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			mite
+		} else if (input$useExampleData == FALSE) {
 		inFile <- datasetInput()
 	
 		if (is.null(inFile))
@@ -33,6 +37,7 @@ shinyServer(
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
 		)	
+	 }
 	})
 
 
@@ -41,7 +46,7 @@ shinyServer(
 
 		transData <- reactive({
 		
-			if(is.null(input$dataset))
+			if(is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 		
 			if (input$transform == 'none' | is.null(input$transform)){
@@ -86,7 +91,7 @@ shinyServer(
 		# Test with multivariate Shapiro-Wilk statistic
 		mshapiroTest <- reactive({ 
 				
-			if (is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 				
 				mShapTemp <- NULL
@@ -129,7 +134,7 @@ shinyServer(
 		# Define UI element
 		output$boxPlotRangeUI <- renderUI({
 		
-		if(is.null(input$dataset))
+		if(is.null(input$dataset) & input$useExampleData == FALSE)
 				return()	
 				
 			sliderInput(
@@ -151,7 +156,7 @@ shinyServer(
 		# Define UI element
 		output$qqPlotRangeUI <- renderUI({
 		
-		if(is.null(input$dataset))
+		if(is.null(input$dataset) & input$useExampleData == FALSE)
 				return()	
 				
 			sliderInput(
@@ -172,7 +177,7 @@ shinyServer(
 		# Define UI element
 		output$histPlotRangeUI <- renderUI({
 		
-		if(is.null(input$dataset))
+		if(is.null(input$dataset) & input$useExampleData == FALSE)
 				return()	
 				
 			sliderInput(
@@ -193,18 +198,18 @@ shinyServer(
 		# Create boxplots
 		output$boxPlots <- renderPlot({
 		
-			if (is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 			
 			if (is.null(input$boxPlotRange)) {
 				boxplot(
-					as.matrix(transData()[1:3]),
+					as.matrix(transData()[,1:3]),
  					use.cols = TRUE,
 					las = 3 # Lables perpendicular to axis
 				)
 			} else {
 				boxplot(
-					as.matrix(transData()[input$boxPlotRange[1]:input$boxPlotRange[2]]),
+					as.matrix(transData()[,input$boxPlotRange[1]:input$boxPlotRange[2]]),
  					use.cols = TRUE,
 					las = 3 # Lables perpendicular to axis
 				)
@@ -214,7 +219,7 @@ shinyServer(
 		# Create QQ plots
 		output$qqPlots <- renderPlot({
 		
-			if (is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 			
 			if (is.null(input$qqPlotRange)) {
@@ -242,7 +247,7 @@ shinyServer(
 		# Create histograms
 		output$histPlots <- renderPlot({
 		
-			if (is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 			
 			if (is.null(input$histPlotRange)) {
@@ -274,7 +279,7 @@ shinyServer(
 
 		output$univarTestResults <- renderPrint({
 		
-			if(is.null(input$dataset))
+			if(is.null(input$dataset) & input$useExampleData == FALSE)
 					return("Please upload data")
 				
 			cat(
@@ -303,7 +308,7 @@ shinyServer(
 # results of multivariate shapiro test
 		output$multivarTestResults <- renderPrint({
 			
-			if(is.null(input$dataset))
+			if(is.null(input$dataset) & input$useExampleData == FALSE)
 					return("Please upload data")
 			
 			# As tryCatch() returns odd results, some logic to return 

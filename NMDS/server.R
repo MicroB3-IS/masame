@@ -2,6 +2,7 @@
 
 library(shiny)
 library(vegan)
+data(dune)
 
 shinyServer(function(input, output){
 	
@@ -11,6 +12,9 @@ shinyServer(function(input, output){
 	})
 
 	datasetFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			dune
+		} else if (input$useExampleData == FALSE) {
 		inFile <- datasetInput()
 	
 		if (is.null(inFile))
@@ -23,12 +27,13 @@ shinyServer(function(input, output){
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
 			)	
+		}
 })
 
 # Transform response data if requested...
 	transData <- reactive({
 		
-		if(is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 		
 		if(
@@ -49,7 +54,7 @@ shinyServer(function(input, output){
 	})
 	dissMat <- reactive({
 		
-		if (is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 			return()
 			
 		vegdist(
@@ -62,7 +67,7 @@ shinyServer(function(input, output){
 
 	nmds <- reactive({ 
 				
-		if (is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 			return()
 				
 		metaMDS(
@@ -73,7 +78,7 @@ shinyServer(function(input, output){
 
 	output$plot <- renderPlot({
 					
-		if (is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 			return()
 		
 		# Multiplot for 3 dimensions
@@ -161,7 +166,7 @@ shinyServer(function(input, output){
 
 	output$stressplot <- renderPlot({
 					
-		if (is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 			return()
 				
 		stressplot(nmds())
@@ -169,7 +174,7 @@ shinyServer(function(input, output){
 
 	output$print <- renderPrint({
 					
-		if (is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 			return("Please upload data")
 				
 		print(nmds())
@@ -177,7 +182,7 @@ shinyServer(function(input, output){
 
 output$objectCoordinates <- renderTable({
 					
-		if (is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 			return("Please upload data")
 				
 		as.table(nmds()$points)

@@ -4,6 +4,7 @@ library(shiny)
 library(vegan)
 library(mvoutlier)
 # library(outliers)
+data(varechem)
 
 shinyServer(
 	function(input, output){
@@ -14,6 +15,9 @@ shinyServer(
 	})
 
 	datasetFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			varechem
+		} else if (input$useExampleData == FALSE) {
 		inFile <- datasetInput()
 	
 		if (is.null(inFile))
@@ -26,6 +30,7 @@ shinyServer(
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
 		)	
+	}
 	})
 
 
@@ -34,7 +39,7 @@ shinyServer(
 
 		transData <- reactive({
 		
-			if(is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 		
 			if (input$transform == 'none' | is.null(input$transform)){
@@ -62,12 +67,12 @@ shinyServer(
 			
 		})
 
-		# Create boxplot object (without no plot) for outlier extraction, plot 
+		# Create boxplot object (without plot) for outlier extraction, plot 
 		# objects created below.
 		
 		boxPlot <- reactive({ 
 				
-			if (is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 				
 				boxPlotTemp <- NULL
@@ -93,11 +98,13 @@ shinyServer(
 		# univariate outliers in which variables
 		uniOutliers <- reactive({
 			
-			if (is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 				
 			tempMat <- rbind(boxPlot()$names[boxPlot()$group], boxPlot()$out)
-			colnames(tempMat) <- c("Variable","Outlier value(s)")
+			rownames(tempMat) <- c("Variable","Outlier value(s)")
+			tempMat <- as.data.frame(t(tempMat))
+			
 			
 		})
 
@@ -217,7 +224,7 @@ shinyServer(
 		# Define UI element
 		output$boxPlotRangeUI <- renderUI({
 		
-		if(is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()	
 				
 			sliderInput(
@@ -239,7 +246,7 @@ shinyServer(
 		# Define UI element
 		output$histPlotRangeUI <- renderUI({
 		
-		if(is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()	
 				
 			sliderInput(
@@ -260,7 +267,7 @@ shinyServer(
 		# Create boxplots
 		output$boxPlots <- renderPlot({
 		
-			if (is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 			
 			if (is.null(input$boxPlotRange)) {
@@ -284,7 +291,7 @@ shinyServer(
 		# Create histograms
 		output$histPlots <- renderPlot({
 		
-			if (is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 			
 			if (is.null(input$histPlotRange)) {
@@ -316,7 +323,7 @@ shinyServer(
 
 		output$boxPlotResults <- renderPrint({
 		
-			if(is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 					return("Please upload data")
 				
 			cat(			
@@ -339,7 +346,7 @@ shinyServer(
 # results of multivariate outlier screens
 		output$pcoutResults <- renderPrint({
 			
-			if(is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 					return("Please upload data")
 			
 			# As tryCatch() returns odd results, some logic to return 
@@ -365,7 +372,7 @@ shinyServer(
 
 output$sign1Results <- renderPrint({
 			
-			if(is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 					return("Please upload data")
 			
 			# As tryCatch() returns odd results, some logic to return 
@@ -389,7 +396,7 @@ output$sign1Results <- renderPrint({
 
 output$sign2Results <- renderPrint({
 			
-			if(is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 					return("Please upload data")
 			
 			# As tryCatch() returns odd results, some logic to return 
@@ -431,7 +438,7 @@ output$sign2Results <- renderPrint({
 		paste('Univariate_outlier_values_and_variables-', Sys.Date(), '.csv', sep='')
 	  },
 	  content <- function(file) {
-		 uO <- as.data.frame(uniOutliers())
+		 uO <- as.matrix(uniOutliers())
 		write.csv(uO, file)
 	  },
 	  contentType = 'text/csv'

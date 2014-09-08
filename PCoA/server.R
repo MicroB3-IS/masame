@@ -1,6 +1,7 @@
 #runApp('C:\\Users\\pbuttigi\\Documents\\Revolution\\EATME\\PCoA', launch.browser = FALSE)
 library(shiny)
 library(vegan)
+data(varechem)
 
 shinyServer(function(input, output){
 	
@@ -9,6 +10,9 @@ shinyServer(function(input, output){
 	})
 
 	datasetFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			varechem
+		} else if (input$useExampleData == FALSE) {
 		inFile <- datasetInput()
 	
 		if (is.null(inFile))
@@ -21,6 +25,7 @@ shinyServer(function(input, output){
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
 			)
+		}
 	})
 
 	
@@ -32,7 +37,7 @@ shinyServer(function(input, output){
 	# issue.
 			dissMat <- reactive({
 				
-				if(is.null(input$dataset))
+				if (is.null(input$dataset) & input$useExampleData == FALSE)
 					return()
 					
 				if(
@@ -59,7 +64,7 @@ shinyServer(function(input, output){
 
 	pcoa <- reactive({ 
 		
-		if(is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 					return()
 					
 		capscale(
@@ -72,7 +77,7 @@ shinyServer(function(input, output){
 
 	output$plot <- renderPlot({
 		
-		if(is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 					return()
 					
 		plot(pcoa(), type = "n")
@@ -85,7 +90,7 @@ shinyServer(function(input, output){
 
 	output$print <- renderPrint({
 		
-		if(is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 					return(print("Please upload data"))
 					
 		print(pcoa())

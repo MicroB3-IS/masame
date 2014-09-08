@@ -19,12 +19,16 @@ shinyUI(
 				p("Univariate outliers are often indicative of the existence of multivariate outliers; however, the absense of the latter does not follow from that of the former."),
 				p("Often, any non-zero value in variables dominated by zero values (e.g. abundances of rare species) will be marked as an outlier."),
 				p("Please note, that this screen is in no way conclusive. Multivariate data should be inspected with several, appropriate dimension-reduction techniques to investigate outliers."),
-				h5("CSV parameters"),
+				
+			br(),
+			h5("Example data"),
+				p("Tick the box below if you'd like to use the 'varechem' dataset included in the vegan package as an example."),
+				checkboxInput('useExampleData', 'Use an example dataset', FALSE),
+			br(),
+			h5("CSV parameters"),
 				p("Note that these parameters apply to all files uploaded. If your files are not correctly formatted, errors will result."),
 				strong("Please upload a numeric data set. Non-numeric values will cause multivariate screens to fail and only some variables to be evaluated with univariate tests."),
 			br(),
-			br(),
-			
 			checkboxInput('header', 'Header', TRUE),
 			radioButtons(
 				inputId = 'sep',

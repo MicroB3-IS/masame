@@ -29,6 +29,11 @@ shinyUI(
 					#),
 				
 				# Parameters for read.csv...
+				h5("Example data"),
+				p("Tick the box below if you'd like to use the 'mite' dataset included in the vegan package as an example."),
+				checkboxInput('useExampleData', 'Use an example dataset', FALSE),
+				p(),
+				
 				checkboxInput('header', 'Header', TRUE),
 				
 				numericInput(

@@ -1,12 +1,12 @@
 =======================================================================
 =
-= Ecological Analysis Tools for Microbial Ecology (EATME)
+= the Multivariate AnalysiS Applications for Microbial Ecology (MASAME)
+= suite
 =
 =======================================================================
 
 The apps in this directory will allow you to perform a set of statistical
 analysis and screens typically suited to ecological data sets.
-
 
 If you have queries, wish to report errors, or have enhancement requests,
 contact pbuttigi@mpi-bremen.de
@@ -19,7 +19,7 @@ contact pbuttigi@mpi-bremen.de
 ====================
 
 Please find demo data sets in the "Example data sets" directory. These
-are correctly formatted for upload to EATME Apps under the default
+are correctly formatted for upload to MASAME Apps under the default
 upload settings. More information is available in the README file in 
 the directory.
 

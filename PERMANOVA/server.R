@@ -2,8 +2,8 @@
 
 library(shiny)
 library(vegan)
-
-
+data(dune)
+data(dune.env)
 
 shinyServer(function (input, output){
 	
@@ -13,6 +13,9 @@ shinyServer(function (input, output){
 	})
 
 	datasetFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			dune
+		} else if (input$useExampleData == FALSE) {
 		inFile <- datasetInput()
 	
 		if (is.null(inFile))
@@ -24,7 +27,8 @@ shinyServer(function (input, output){
 			sep = input$sep,
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
-		)	
+		)
+	}	
 	})
 
 # Handle uploaded grouping data...
@@ -32,7 +36,10 @@ shinyServer(function (input, output){
 		input$explanatoryVars
 	})
 
-	exFile <- reactive({
+	explanatoryFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			dune.env
+		} else if (input$useExampleData == FALSE) {
 		exFile <- explanatoryInput()
 	
 		if (is.null(exFile))
@@ -45,6 +52,7 @@ shinyServer(function (input, output){
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
 			)	
+		}
 	})
 
 
@@ -72,7 +80,7 @@ shinyServer(function (input, output){
 
 		transData <- reactive({
 			
-			if(is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 				
 			if(
@@ -95,7 +103,7 @@ shinyServer(function (input, output){
 				) {
 				decostand(
 					datasetFile(),
-					method = input$transform,
+					method = input$transform
 				)
 			} else {
 				decostand(
@@ -111,35 +119,34 @@ shinyServer(function (input, output){
 	transExpData <- reactive({
 		
 			if(
-				is.null(input$dataset) | 
-				is.null(input$explanatoryVars)
-				)
+				is.null(input$explanatoryVars) & input$useExampleData == FALSE
+			  )
 				return()
 				
 			if(
-				!is.numeric(as.matrix(exFile())) &
+				!is.numeric(as.matrix(explanatoryFile())) &
  				input$expTransform != 'none'
 			)
 				stop("Non-numeric values detected! Transformation invalid.")
 		
 			if (input$expTransform == 'none' | is.null(input$expTransform)){
-				exFile()
+				explanatoryFile()
 			} else if (input$expTransform == 'wisconsin') {
-				wisconsin(exFile())	
+				wisconsin(explanatoryFile())	
 			} else if (input$expTransform == 'square.root') {
-				sqrt(exFile())
+				sqrt(explanatoryFile())
  			} else if (
 				input$expTransformRorC == 0 |
  				input$expTransform == 'hellinger' |
  				input$expTransform == 'pa'
 				) {
 				decostand(
-					exFile(),
-					method = input$expTransform,
+					explanatoryFile(),
+					method = input$expTransform
 				)
 			} else {
 				decostand(
-					exFile(),
+					explanatoryFile(),
 					method = input$expTransform,
 					MARGIN = as.numeric(input$expTransformRorC)
 				)
@@ -151,7 +158,7 @@ shinyServer(function (input, output){
 # Calculate dissimilarity matrix
 	dissMat <- reactive({
 		
-		if (is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 			return()
 		
 		vegdist(
@@ -169,8 +176,9 @@ shinyServer(function (input, output){
 # Calculate ADONIS solution
 	adonisSol <- reactive({ 
 		
-			
-		if (is.null(input$dataset))
+		if (
+			(is.null(input$dataset) | is.null(input$explanatoryVars)) & input$useExampleData == FALSE
+		    )
 			return()
 		
 		if (is.null(input$strata)) {
@@ -191,7 +199,7 @@ shinyServer(function (input, output){
 			)
 		
 		} else {
-			anosim(
+			adonis(
 					formula = as.formula(
 					paste(
 						'dissMat() ~ ',
@@ -212,9 +220,8 @@ shinyServer(function (input, output){
 	output$print <- renderPrint({
 		
 		if (
-			is.null(input$dataset) |
-			is.null(input$explanatoryVars)
-		)
+			(is.null(input$dataset) | is.null(input$explanatoryVars)) & input$useExampleData == FALSE
+		   )
 			return(print("Please upload data"))
 			
 		if (sum(grepl("condition", class(adonisSol()))) > 0)

@@ -2,6 +2,8 @@
 
 library(shiny)
 library(vegan)
+data(mite)
+data(mite.env)
 
 shinyServer(function(input, output){
 	
@@ -11,6 +13,9 @@ shinyServer(function(input, output){
 	})
 
 	datasetFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			mite
+		} else if (input$useExampleData == FALSE) {
 		inFile <- datasetInput()
 	
 		if (is.null(inFile))
@@ -22,7 +27,8 @@ shinyServer(function(input, output){
 			sep = input$sep,
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
-			)	
+			)
+		}	
 	})
 
 # Handle uploaded explanatory data...
@@ -31,6 +37,9 @@ shinyServer(function(input, output){
 	})
 
 	explanatoryFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			mite.env
+		} else if (input$useExampleData == FALSE) {
 		exFile <- explanatoryInput()
 	
 		if (is.null(exFile))
@@ -43,6 +52,7 @@ shinyServer(function(input, output){
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
 			)	
+		}
 	})
 
 
@@ -52,6 +62,9 @@ shinyServer(function(input, output){
 	})
 
 	conditioningFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			mite.env
+		} else if (input$useExampleData == FALSE) {
 		conFile <- conditioningInput()
 	
 		if (is.null(conFile))
@@ -64,13 +77,14 @@ shinyServer(function(input, output){
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
 			)	
+		}
 	})
 
 # Generate UI element to select which conditioning variables should be used...
 
 		output$whichCondVarsUI <- renderUI({
 			
-			if (is.null(input$conditioningVars)){
+			if (is.null(input$conditioningVars) & input$useExampleData == FALSE){
 				
 				HTML("") # Just some blank space
 				
@@ -80,7 +94,7 @@ shinyServer(function(input, output){
 					inputId = "whichCondVars", 
 					label = "Select at least one of your conditioning variables to be included in the analysis:",
 					choices = names(conditioningFile()),
-					selected = names(conditioningFile())
+					selected = NULL
 					)
 				}
 		})
@@ -108,7 +122,7 @@ shinyServer(function(input, output){
 # Transform data if requested...
 	transData <- reactive({
 		
-		if(is.null(input$dataset))
+		if(is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 		
 		if(
@@ -131,7 +145,7 @@ shinyServer(function(input, output){
 # Transform explanatory data if requested...
 	transExpData <- reactive({
 		
-		if(is.null(input$explanatoryVars))
+		if(is.null(input$explanatoryVars) & input$useExampleData == FALSE)
 				return()
 		
 		if(
@@ -156,7 +170,7 @@ shinyServer(function(input, output){
 # Transform conditioning data if requested...
 	transCondData <- reactive({
 			
-		if(is.null(input$conditioningVars))
+		if(is.null(input$conditioningVars) & input$useExampleData == FALSE)
 			return()
 		
 		if(
@@ -199,16 +213,18 @@ shinyServer(function(input, output){
 	
 	rdaSol <- reactive({ 
 		
-		if (is.null(input$dataset) | is.null(input$explanatoryVars) )
+		if (
+			(is.null(input$dataset) | is.null(input$explanatoryVars)) & input$useExampleData == FALSE
+			)
 			return()
 			
-		if (is.null(input$conditioningVars) | is.null(input$whichCondVars) ){
+		if ((is.null(input$conditioningVars) & input$useExampleData == FALSE) | is.null(input$whichCondVars) ){
 			rda(
 				formula = transData() ~ .,
  				data = transExpData(),
  				scale = input$scaleVars
 				)
-		} else if (!is.null(input$conditioningVars)) {
+		} else if ((!is.null(input$conditioningVars) | input$useExampleData == TRUE) | !is.null(input$whichCondVars) ) {
 			rda(
 				formula = as.formula(
 					paste(
@@ -249,7 +265,7 @@ anova <- reactive({
 
 	output$plot <- renderPlot({
 		
-		if (is.null(input$dataset) | is.null(input$explanatoryVars))
+		if ((is.null(input$dataset) | is.null(input$explanatoryVars))  & input$useExampleData == FALSE)
 		 return()
 		
 		if (input$display == "both") {
@@ -273,7 +289,7 @@ anova <- reactive({
 
 	output$print <- renderPrint({
 		
-		if (is.null(input$dataset) | is.null(input$explanatoryVars))
+		if ((is.null(input$dataset) | is.null(input$explanatoryVars))  & input$useExampleData == FALSE)
 		 return(print("Please upload data"))
 		
 		print(summary(rdaSol()))
@@ -281,7 +297,7 @@ anova <- reactive({
 
 	output$printSig <- renderPrint({
 		
-		if (is.null(input$dataset) | is.null(input$explanatoryVars))
+		if ((is.null(input$dataset) | is.null(input$explanatoryVars)) & input$useExampleData == FALSE)
 		 return(print("Please upload data"))
 		
 		print(anova())

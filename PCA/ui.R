@@ -14,6 +14,12 @@ shinyUI(
 			tabPanel("Data upload",
  				h5("Description"),
 				p("This App will perform a PCA using the rda() function from the vegan package for R. Transformations are performed by decostand(), also from vegan"),
+				
+				h5("Example data"),
+				p("Tick the box below if you'd like to use the 'dune' dataset included in the vegan package as an example."),
+				checkboxInput('useExampleData', 'Use an example dataset', FALSE),
+				
+				
 				h5("CSV parameters"),
 				p("Note that these parameters apply to all files uploaded. If your files are not correctly formatted, errors will result."),
 			

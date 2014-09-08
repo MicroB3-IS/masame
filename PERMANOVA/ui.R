@@ -19,6 +19,11 @@ shinyUI(
 				
 				h5("Description"),
 				p("This App will perform a permutational multivariate analysis of variance using distance matrices via the adonis() function from the vegan package for R. Transformations are performed by decostand() {vegan}, wisconsin() {vegan}, and several standard functions. Distances are calculated using vegdist() {vegan}."),
+				br(),
+				h5("Example data"),
+				p("Tick the box below if you'd like to use the 'dune' dataset included in the vegan package as an example. The associated environmental variables in 'dune.env' constitute the explanatory matrix."),
+				checkboxInput('useExampleData', 'Use an example dataset', FALSE),
+				br(),
 				h5("CSV parameters"),
 				p("Note that these parameters apply to all files uploaded. If your files are not correctly formatted, errors will result."),
 				

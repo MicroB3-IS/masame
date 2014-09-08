@@ -22,6 +22,10 @@ shinyUI(
 				
  				
 				# Parameters for read.csv...
+				h5("Example data"),
+				p("Tick the box below if you'd like to use the 'mite' dataset included in the vegan package as an example. The 'mite.env' set of environmental parameters will be used as explanatory variables and as coniditional variables."),
+				checkboxInput('useExampleData', 'Use an example dataset', FALSE),
+				
 				checkboxInput('header', 'Header', TRUE),
 				
 				numericInput(
@@ -90,47 +94,133 @@ shinyUI(
    tabPanel(
       "Data transformations",
 				
-			# Should the data be transformed? Input for decostand()
-			radioButtons(
-				inputId = 'transform',
-				label = 'If needed, select a transformation for your response data...',
-				choices = c(
-					'No transformation' = 'none',
-					'Z score' = 'standardize',
-					'Chi square' = 'chi.square',
-					'Hellinger' = 'hellinger'
+	
+				p("If needed, select a transformation to apply to your data."),
+				strong("Note that many of these transformation will fail and produce errors if there are negative or non-numeric values in your data!"),
+				br(),
+				br(),
+				HTML("Click <b>recalculate</b> after you've set new parameters."),
+				br(),
+				
+				h5("Response data"),
+				# Should the data be transformed? Input for decostand()
+				selectInput(
+					inputId = 'transformRorC',
+					label = 'Would you like to transform the rows or columns of your response data set?',
+					choices = c(
+						'Method default' = 0,
+						'Rows' = 1,
+						'Columns' = 2
+					),
+					selected = 'Method default'
+				),
+					
+				selectInput(
+					inputId = 'transform',
+					label = 'Select a standardisation or transformation method. Where applicable, row/column transformation will be over-ridden based on your input above. ',
+					choices = c(
+						'No transformation' = 'none',
+						'Divide values by row totals' = 'total',
+						'Divide values by column maxima' = 'max',
+						'Take the square root of all values' = 'square.root', # not decostand!
+						'Take the logarithm (base 2) of all values and then add one. Zeros left unchanged.' = 'log',
+						'Standardise row sums-of-squares to one' = 'normalize',
+						'Standardise columns to zero mean and unit variance (z-score)' = 'standardize',
+						'Standardise column values to fall within the interval [0,1]. All values in columns with no variation will be set to zero.' = 'range',
+						'Convert to presence/absense (1/0) data' = 'pa',
+						'Set the average of non-zero entries across columns to one' = 'freq',
+						'Wisconsin double standardisation' = 'wisconsin', # not decostand!
+						'Chi square standardisation' = 'chi.square',
+						'Hellinger transformation' = 'hellinger'
 					)
 				),
-
-			# Scale variables to unit variance?
-			checkboxInput('scaleVars', 'Would you like to scale your response variables to unit variance?', FALSE),
-
+			
+			
+				# Scale variables to unit variance?
+				checkboxInput('scaleVars', 'Would you like to scale your response variables to unit variance?', FALSE),
+	
 			
 			# Should the explanatory data be transformed? Input for decostand()
-			radioButtons(
+			
+				br(),
+				br(),
+				h5("Explanatory data"),
+				br(),
+					
+				selectInput(
+					inputId = 'expTransformRorC',
+					label = 'Would you like to transform the rows or columns of your explanatory data set?',
+					choices = c(
+						'Method default' = 0,
+						'Rows' = 1,
+						'Columns' = 2
+					),
+					selected = 'Method default'
+				),
+			
+			
+			selectInput(
 				inputId = 'expTransform',
 				label = 'If needed, select a transformation for your explanatory variables...',
 				choices = c(
-					'No transformation' = 'none',
-					'Z score' = 'standardize',
-					'Chi square' = 'chi.square',
-					'Hellinger' = 'hellinger'
+						'No transformation' = 'none',
+						'Divide values by row totals' = 'total',
+						'Divide values by column maxima' = 'max',
+						'Take the square root of all values' = 'square.root', # not decostand!
+						'Take the logarithm (base 2) of all values and then add one. Zeros left unchanged.' = 'log',
+						'Standardise row sums-of-squares to one' = 'normalize',
+						'Standardise columns to zero mean and unit variance (z-score)' = 'standardize',
+						'Standardise column values to fall within the interval [0,1]. All values in columns with no variation will be set to zero.' = 'range',
+						'Convert to presence/absense (1/0) data' = 'pa',
+						'Set the average of non-zero entries across columns to one' = 'freq',
+						'Wisconsin double standardisation' = 'wisconsin', # not decostand!
+						'Chi square standardisation' = 'chi.square',
+						'Hellinger transformation' = 'hellinger'
 					)
 				),
-			
+			 
 			# Should the conditioning variables be transformed? Input for decostand()
-			radioButtons(
+		
+				br(),
+				br(),
+				h5("Conditioning data (if applicable)"),
+				br(),
+					
+				selectInput(
+					inputId = 'condTransformRorC',
+					label = 'Would you like to transform the rows or columns of your conditioning data set?',
+					choices = c(
+						'Method default' = 0,
+						'Rows' = 1,
+						'Columns' = 2
+					),
+					selected = 'Method default'
+				),
+			
+			
+			selectInput(
 				inputId = 'condTransform',
 				label = 'If needed, select a transformation for your conditioning variables...',
 				choices = c(
-					'No transformation' = 'none',
-					'Z score' = 'standardize',
-					'Chi square' = 'chi.square',
-					'Hellinger' = 'hellinger'
+						'No transformation' = 'none',
+						'Divide values by row totals' = 'total',
+						'Divide values by column maxima' = 'max',
+						'Take the square root of all values' = 'square.root', # not decostand!
+						'Take the logarithm (base 2) of all values and then add one. Zeros left unchanged.' = 'log',
+						'Standardise row sums-of-squares to one' = 'normalize',
+						'Standardise columns to zero mean and unit variance (z-score)' = 'standardize',
+						'Standardise column values to fall within the interval [0,1]. All values in columns with no variation will be set to zero.' = 'range',
+						'Convert to presence/absense (1/0) data' = 'pa',
+						'Set the average of non-zero entries across columns to one' = 'freq',
+						'Wisconsin double standardisation' = 'wisconsin', # not decostand!
+						'Chi square standardisation' = 'chi.square',
+						'Hellinger transformation' = 'hellinger'
 					)
-				)
+				)#,
 			
-		),
+			#submitButton("Recalculate!")
+			
+		), # End Transformations tab
 
 	tabPanel(
       "db-RDA parameters...",

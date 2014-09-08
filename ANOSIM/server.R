@@ -2,6 +2,9 @@
 
 library(shiny)
 library(vegan)
+data(mite)
+data(mite.env)
+miteGroups <- mite.env$Shrub
 
 shinyServer(function (input, output){
 	
@@ -11,6 +14,10 @@ shinyServer(function (input, output){
 	})
 
 	datasetFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			mite
+		} else if (input$useExampleData == FALSE) {
+		
 		inFile <- datasetInput()
 	
 		if (is.null(inFile))
@@ -23,6 +30,7 @@ shinyServer(function (input, output){
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
 			)	
+		}
 	})
 
 # Handle uploaded grouping data...
@@ -31,6 +39,10 @@ shinyServer(function (input, output){
 	})
 
 	groupFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			as.vector(miteGroups)
+		} else if (input$useExampleData == FALSE) {
+		
 		grFile <- groupInput()
 	
 		if (is.null(grFile))
@@ -43,6 +55,7 @@ shinyServer(function (input, output){
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
 			)	
+		}
 	})
 
 
@@ -70,7 +83,7 @@ shinyServer(function (input, output){
 
 		transData <- reactive({
 		
-			if(is.null(input$dataset))
+			if(is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 				
 			if(
@@ -106,7 +119,7 @@ shinyServer(function (input, output){
 
 	dissMat <- reactive({
 		
-		if (is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 			return()
 		
 		vegdist(
@@ -124,7 +137,7 @@ shinyServer(function (input, output){
 # Calculate ANOSIM solution
 	anosimSol <- reactive({ 
 		
-		if (is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 			return()
 		
 		if (is.null(input$strata)) {
@@ -154,8 +167,8 @@ shinyServer(function (input, output){
 	output$plot <- renderPlot({
 		
 		if (
-			is.null(input$dataset) |
-			is.null(input$groups)
+			(is.null(input$dataset) |
+			is.null(input$groups)) & input$useExampleData == FALSE
 		)
 			return()
 		
@@ -169,8 +182,8 @@ shinyServer(function (input, output){
 	output$print <- renderPrint({
 		
 		if (
-			is.null(input$dataset) |
-			is.null(input$groups)
+			(is.null(input$dataset) |
+			is.null(input$groups)) & input$useExampleData == FALSE
 		)
 			return(print("Please upload data"))
 			

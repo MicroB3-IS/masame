@@ -17,6 +17,11 @@ shinyUI(
 			h5("Description"),
 				p("This App will perform univariate Shapiro-Wilk tests on each variable (column) in your data set using the shapiro.test() function from the stats package for R. A multivariate Shapiro-Wilk test is performed on your entire data set using the mshapiro.test() function from the mvnormtest library. Transformations are performed by decostand() and wisconsin() {vegan} as well as standard R functions."),
 				p("In general, it is unlikely that ecological data will be normally distributed. Examining boxplots and histograms and using transformations to render the data 'near-normal' (e.g. symmetric, with no major outliers) is often more realistic."),
+				
+				h5("Example data"),
+				p("Tick the box below if you'd like to use the 'mite' dataset included in the vegan package as an example."),
+				checkboxInput('useExampleData', 'Use an example dataset', FALSE),
+				
 				h5("CSV parameters"),
 				p("Note that these parameters apply to all files uploaded. If your files are not correctly formatted, errors will result."),
 				strong("Please upload a numeric data set. Non-numeric values will result in errors."),
