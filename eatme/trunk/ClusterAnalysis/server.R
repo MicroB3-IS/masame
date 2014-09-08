@@ -2,6 +2,7 @@
 
 library(shiny)
 library(vegan)
+data(mite)
 
 shinyServer(function(input, output){
 	
@@ -11,6 +12,9 @@ shinyServer(function(input, output){
 	})
 
 	datasetFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			mite
+		} else if (input$useExampleData == FALSE) {
 		inFile <- datasetInput()
 	
 		if (is.null(inFile))
@@ -23,11 +27,12 @@ shinyServer(function(input, output){
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
 			)	
+		}
 	})
 
 	dissMat <- reactive({
 		
-		if (is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 			return()
 		
 		if (
@@ -63,7 +68,7 @@ shinyServer(function(input, output){
 # Calculate cluster analysis solution...
 	clustSol <- reactive({ 
 				
-		if (is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 			return()
 				
 		hclust(
@@ -74,7 +79,7 @@ shinyServer(function(input, output){
 
 	output$plot <- renderPlot({
 					
-		if (is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 			return()
 		
 		plot(
@@ -126,7 +131,7 @@ shinyServer(function(input, output){
 
 	output$print <- renderPrint({
 					
-		if (is.null(input$dataset))
+		if (is.null(input$dataset) & input$useExampleData == FALSE)
 			return("Please upload data")
 				
 		print(clustSol())

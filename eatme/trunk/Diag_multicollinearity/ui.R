@@ -18,6 +18,9 @@ shinyUI(
 				p("This App will use the rcorr() function from the Hmisc package for R to screen your data set for multicollinear variables. Transformations are performed by decostand() and wisconsin() from the vegan package as well as several standard functions. Visualisations are included as they are typically more informative than simple statistics."),
 				strong("Only numeric variables will be screened. Uploading a data set with non-numeric values will result in errors."),
 				
+				h5("Example data"),
+				p("Tick the box below if you'd like to use the 'varechem' dataset included in the vegan package as an example. This dataset includes 14 numeric variables describing chemical concentrations in soil samples at various sites."),
+				checkboxInput('useExampleData', 'Use an example dataset', FALSE),
 				
 				h5("CSV parameters"),
 				p("Note that these parameters apply to all files uploaded. If your files are not correctly formatted, errors will result."),

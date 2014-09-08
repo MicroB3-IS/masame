@@ -1,5 +1,6 @@
 library(shiny)
 library(vegan)
+data(dune)
 
 shinyServer(function(input, output){
 
@@ -9,6 +10,9 @@ shinyServer(function(input, output){
 	})
 
 	datasetFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			dune
+		} else if (input$useExampleData == FALSE) {
 		inFile <- datasetInput()
 	
 		if (is.null(inFile))
@@ -21,12 +25,13 @@ shinyServer(function(input, output){
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
 			)
+		}
 	})
 
 # Transform data if requested...
 	transData <- reactive({
 	
-	if (is.null(input$dataset))
+	if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 				
 	if(
@@ -49,7 +54,7 @@ shinyServer(function(input, output){
 # Perform PCA analysis
 	pca <- reactive({ 
 			
-	if (is.null(input$dataset))
+	if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 		rda(
 			transData()
@@ -60,7 +65,7 @@ shinyServer(function(input, output){
 
 	output$plot <- renderPlot({
 			
-	if (is.null(input$dataset))
+	if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 				
 		biplot(
@@ -73,7 +78,7 @@ shinyServer(function(input, output){
 
 	output$eigenvals <- renderPrint({
 		
-			if (is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return(print("Please upload data"))
 				
 		eigenvals(pca())
@@ -81,7 +86,7 @@ shinyServer(function(input, output){
 
 	output$print <- renderPrint({
 		
-			if (is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return(print("Please upload data"))
 				
 		print(pca())
@@ -89,7 +94,7 @@ shinyServer(function(input, output){
 
 	output$objectScores <- renderPrint({
 		
-			if (is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return(print("Please upload data"))
 				
 		print(pca()$CA$u.eig)
@@ -97,7 +102,7 @@ shinyServer(function(input, output){
 
 	output$variableScores <- renderPrint({
 		
-			if (is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return(print("Please upload data"))
 				
 		print(pca()$CA$v.eig)

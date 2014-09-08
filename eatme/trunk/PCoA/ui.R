@@ -15,6 +15,12 @@ shinyUI(
 			tabPanel("Data upload", 
 				h5("Description"),
 				p("This App will perform a PCoA using the capscale() function from the vegan package for R. Dissimilarities are computed by vegdist() {vegan} or, should a flexible shortest path data transformation be requested, by metaMDSdist() {vegan}."),
+				
+				h5("Example data"),
+				p("Tick the box below if you'd like to use the 'varechem' dataset included in the vegan package as an example."),
+				checkboxInput('useExampleData', 'Use an example dataset', FALSE),
+				
+				
 				h5("CSV parameters"),
 				p("Note that these parameters apply to all files uploaded. If your files are not correctly formatted, errors will result."),
 				

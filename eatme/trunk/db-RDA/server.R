@@ -2,6 +2,8 @@
 
 library(shiny)
 library(vegan)
+data(mite)
+data(mite.env)
 
 shinyServer(function(input, output){
 
@@ -11,6 +13,9 @@ shinyServer(function(input, output){
 	})
 
 	datasetFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			mite
+		} else if (input$useExampleData == FALSE) {
 		inFile <- datasetInput()
 	
 		if (is.null(inFile))
@@ -23,6 +28,7 @@ shinyServer(function(input, output){
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
 			)	
+		}
 	})
 
 # Handle uploaded explanatory data...
@@ -31,6 +37,9 @@ shinyServer(function(input, output){
 	})
 
 	explanatoryFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			mite.env
+		} else if (input$useExampleData == FALSE) {
 		exFile <- explanatoryInput()
 	
 		if (is.null(exFile))
@@ -43,6 +52,7 @@ shinyServer(function(input, output){
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
 			)	
+		}
 	})
 
 # Handle uploaded conditioning variables...
@@ -51,6 +61,9 @@ shinyServer(function(input, output){
 	})
 
 	conditioningFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			as.matrix(mite.env)
+		} else if (input$useExampleData == FALSE) {
 		conFile <- conditioningInput()
 	
 		if (is.null(conFile))
@@ -63,6 +76,7 @@ shinyServer(function(input, output){
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
 			)	
+		}
 	})
 
 # Generate UI element to select which conditioning variables should be used...
@@ -74,8 +88,8 @@ shinyServer(function(input, output){
 				checkboxGroupInput(
 					inputId = "whichCondVars", 
 					label = "Select at least one of your conditioning variables to perform a partial analysis:",
-					choices = names(conditioningFile()),
-					selected = names(conditioningFile())
+					choices = colnames(conditioningFile()),
+					selected = NULL
 					)
 		})
 
@@ -102,55 +116,87 @@ shinyServer(function(input, output){
 
 # Transform data if requested...
 	transData <- reactive({
+			
+			if(is.null(input$dataset) & input$useExampleData == FALSE)
+				return()
+				
+			if(
+				!is.numeric(as.matrix(datasetFile())) &
+ 				input$transform != 'none'
+			) {
+				stop("Non-numeric values detected! Transformation invalid.")
+				}
 		
-		if(is.null(input$dataset))
-			return()
+			if (input$transform == 'none' | is.null(input$transform)){
+				datasetFile()
+			} else if (input$transform == 'wisconsin') {
+				wisconsin(datasetFile())	
+			} else if (input$transform == 'square.root') {
+				sqrt(datasetFile())
+ 			} else if (
+				input$transformRorC == 0 |
+ 				input$transform == 'hellinger' |
+ 				input$transform == 'pa'
+				) {
+				decostand(
+					datasetFile(),
+					method = input$transform,
+				)
+			} else {
+				decostand(
+					datasetFile(),
+					method = input$transform,
+					MARGIN = as.numeric(input$transformRorC)
+				)
+			}
 			
-		if(
-			!is.numeric(as.matrix(datasetFile())) &
- 			input$transform != 'none'
-		)
-			stop("Non-numeric values detected! Transformation invalid.")
-	
-		if (input$transform == 'none' | is.null(input$transform)){
-			transData <- datasetFile()
-		} else {
-			decostand(
-				datasetFile(),
-				method = input$transform,
-			)
-		}
-			
-	})
+		})
 
 # Transform explanatory data if requested...
 	transExpData <- reactive({
 		
-		if(is.null(input$explanatoryVars))
-			return()
-		
-		if(
-			!is.numeric(as.matrix(explanatoryFile())) &
- 			input$expTransform != 'none'
-		)
-			stop("Non-numeric values detected! Transformation invalid.")
-	
-	
-		if (input$expTransform == 'none' | is.null(input$expTransform)){
-			transExpData <- explanatoryFile()
-		} else {
-			decostand(
-				explanatoryFile(),
-				method = input$expTransform,
+			if(
+				(is.null(input$dataset) | 
+				is.null(input$explanatoryVars))  & input$useExampleData == FALSE
+				)
+				return()
+				
+			if(
+				!is.numeric(as.matrix(explanatoryFile())) &
+ 				input$expTransform != 'none'
 			)
-		}
+				stop("Non-numeric values detected! Transformation invalid.")
+		
+			if (input$expTransform == 'none' | is.null(input$expTransform)){
+				explanatoryFile()
+			} else if (input$expTransform == 'wisconsin') {
+				wisconsin(explanatoryFile())	
+			} else if (input$expTransform == 'square.root') {
+				sqrt(explanatoryFile())
+ 			} else if (
+				input$expTransformRorC == 0 |
+ 				input$expTransform == 'hellinger' |
+ 				input$expTransform == 'pa'
+				) {
+				decostand(
+					explanatoryFile(),
+					method = input$expTransform
+				)
+			} else {
+				decostand(
+					explanatoryFile(),
+					method = input$expTransform,
+					MARGIN = as.numeric(input$expTransformRorC)
+				)
+			}
 			
-	})
+		})
+
 
 # Transform conditioning data if requested...
 	transCondData <- reactive({
 		
-		if(is.null(input$conditioningVars))
+		if(is.null(input$conditioningVars) & input$useExampleData == FALSE)
 			return()
 			
 		if(
@@ -161,23 +207,44 @@ shinyServer(function(input, output){
 		# The controls above work in general, but fail if there is only one
 		# conditioning variable. TODO: Figure out why and how to fix.
 	
-		if (input$condTransform == 'none'){
-			transCondData <- conditioningFile()
+		if (input$condTransform == 'none' | is.null(input$condTransform)){
+			conditioningFile()
 		} else {
 		
 			selectedVars <- which(
 				colnames(conditioningFile())
- 				%in% 
+ 				%in%
 				input$whichCondVars
 			)
 			
 			# Store solution to apply colnames
-			temp <- decostand(
-				as.data.frame(
-					conditioningFile()[ , selectedVars]
-				),
+			
+			if (input$condTransform == 'wisconsin') {
+				temp <- wisconsin(conditioningFile()[ , selectedVars])	
+			} else if (input$condTransform == 'square.root') {
+				temp <- sqrt(conditioningFile()[ , selectedVars])
+ 			} else if (
+				input$condTransformRorC == 0 |
+ 				input$condTransform == 'hellinger' |
+ 				input$condTransform == 'pa'
+				) {
+				temp <- decostand(
+					as.data.frame(
+						conditioningFile()[ , selectedVars]
+					),
 				method = input$condTransform
 			)
+			} else {
+				decostand(
+					as.data.frame(
+						conditioningFile()[ , selectedVars]
+					),
+					method = input$condTransform,
+					MARGIN = as.numeric(input$condTransformRorC)
+				)
+			}
+		
+		
 		
 			# Attempt to conserve colnames should only 1 var be selected.
 			colnames(temp) <- colnames(conditioningFile())[selectedVars]
@@ -193,7 +260,7 @@ shinyServer(function(input, output){
 
 			dissMat <- reactive({
 				
-				if(is.null(input$dataset))
+				if(is.null(input$dataset) & input$useExampleData == FALSE)
 					return()
 				
 				if (input$autoTransform == TRUE){
@@ -217,11 +284,11 @@ shinyServer(function(input, output){
 
 	dbrda <- reactive({ 
 		
-		if (is.null(input$dataset) | is.null(input$explanatoryVars))
+		if ((is.null(input$dataset) | is.null(input$explanatoryVars)) & input$useExampleData == FALSE)
 					return()
 		
 		if 	(
-			!is.null(input$conditioningVars) &
+			(!is.null(input$conditioningVars) |  input$useExampleData == TRUE) &
 			!is.null(input$whichCondVars)
 			){	
 				
@@ -283,7 +350,7 @@ shinyServer(function(input, output){
 # Test significance of model
 anova <- reactive({
 	
-	if(is.null(input$dataset) | is.null(input$explanatoryVars))
+	if((is.null(input$dataset) | is.null(input$explanatoryVars)) & input$useExampleData == FALSE)
 		return()
 	
 	if(is.null(strataFile())){
@@ -303,7 +370,7 @@ anova <- reactive({
 
 	output$plot <- renderPlot({
 		
-		if(is.null(input$dataset) | is.null(input$explanatoryVars))
+		if((is.null(input$dataset) | is.null(input$explanatoryVars))  & input$useExampleData == FALSE)
 			return()
 		
 		if (input$display == "both") {
@@ -328,7 +395,7 @@ anova <- reactive({
 # Print dbrda summary
 	output$print <- renderPrint({
 		
-		if(is.null(input$dataset) | is.null(input$explanatoryVars))
+		if((is.null(input$dataset) | is.null(input$explanatoryVars))  & input$useExampleData == FALSE)
 			print("Please upload data")
 		
 		print(summary(dbrda()))
@@ -337,7 +404,7 @@ anova <- reactive({
 # Print results of anova.cca()
 	output$printSig <- renderPrint({
 		
-		if(is.null(input$dataset) | is.null(input$explanatoryVars))
+		if((is.null(input$dataset) | is.null(input$explanatoryVars)) & input$useExampleData == FALSE)
 			print("Please upload data")
 			
 		print(anova())

@@ -3,6 +3,7 @@
 library(shiny)
 library(vegan)
 library(Hmisc)
+data(varechem)
 
 shinyServer(
 	function(input, output){
@@ -13,6 +14,10 @@ shinyServer(
 	})
 
 	datasetFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			as.matrix(varechem)
+		} else if (input$useExampleData == FALSE) {	
+		
 		inFile <- datasetInput()
 	
 		if (is.null(inFile))
@@ -25,6 +30,7 @@ shinyServer(
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
 		)	
+	 }
 	})
 
 
@@ -33,7 +39,7 @@ shinyServer(
 
 		transData <- reactive({
 		
-			if(is.null(input$dataset))
+			if(is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 				
 			if(
@@ -70,7 +76,7 @@ shinyServer(
 		# Generate a correlation/P/n matrix list
 		corrMat <- reactive({ 
 				
-			if (is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 						
 			if (is.null(input$corrType) | input$corrType == "pearson"){
@@ -106,7 +112,7 @@ shinyServer(
 		# Define UI element for box plots
 		output$boxPlotRangeUI <- renderUI({
 		
-		if(is.null(input$dataset))
+		if(is.null(input$dataset) & input$useExampleData == FALSE)
 				return()	
 				
 			sliderInput(
@@ -126,7 +132,7 @@ shinyServer(
 	# Define UI element for pair plots
 	output$scatterPlotRangeUI <- renderUI({
 		
-		if(is.null(input$dataset))
+		if(is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 				
 		
@@ -148,7 +154,7 @@ shinyServer(
 	# Create list of variables with correlations above thresholds
 	output$corrVars <- renderPrint ({ 
 			
-			if (is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return(print("Please upload data"))
 			
 			rowColNames <- rownames(corrMat()$r) # same as colnames
@@ -170,7 +176,7 @@ shinyServer(
 		# State number of correlations higher than threshold
 		output$numCorrVars <- renderPrint ({ 
 			
-			if (is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return(print("Please upload data"))
 			
 			paste(
@@ -189,7 +195,7 @@ shinyServer(
 		output$scatterPlots <- renderPlot({
 				
 				if(
-					is.null(input$dataset) | 
+					(is.null(input$dataset) & input$useExampleData == FALSE) | 
 					dim(as.data.frame(transData()[ ,input$scatterPlotRange]))[2] < 2
 				)
 						return()
@@ -227,18 +233,18 @@ shinyServer(
 		# Create boxplots
 		output$boxPlots <- renderPlot({
 		
-			if (is.null(input$dataset))
+			if (is.null(input$dataset) & input$useExampleData == FALSE)
 				return()
 			
 			if (is.null(input$boxPlotRange)) {
 				boxplot(
-					as.matrix(transData()[1:3]),
+					as.matrix(transData()[,1:3]),
  					use.cols = TRUE,
 					las = 3 # Lables perpendicular to axis
 				)
 			} else {
 				boxplot(
-					as.matrix(transData()[input$boxPlotRange[1]:input$boxPlotRange[2]]),
+					as.matrix(transData()[, input$boxPlotRange[1]:input$boxPlotRange[2]]),
  					use.cols = TRUE,
 					las = 3 # Lables perpendicular to axis
 				)

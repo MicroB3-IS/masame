@@ -2,6 +2,7 @@
 
 library(shiny)
 library(vegan)
+data(mite.xy)
 
 shinyServer(function(input, output){
 	
@@ -14,6 +15,9 @@ shinyServer(function(input, output){
 	})
 
 	distanceFile <- reactive({
+		if (input$useExampleData == TRUE) {
+			mite.xy
+		} else if (input$useExampleData == FALSE) {
 		inFile <- distanceInput()
 	
 		if (is.null(inFile))
@@ -26,6 +30,7 @@ shinyServer(function(input, output){
 			quote = input$quote,
 			row.names = if(input$rownames == 0){NULL} else{input$rownames}
 			)	
+		}
 })
 
 	weightsInput <- reactive({		
@@ -80,7 +85,7 @@ shinyServer(function(input, output){
 	# Calculate Euclidean distance matrix for pcnm() and UIs
 	distanceMatrix <- reactive({
 		
-		if(is.null(distanceFile()))
+		if (is.null(distanceFile()) & input$useExampleData == FALSE)
 				return()
 				
 		dist(distanceFile())
@@ -90,7 +95,7 @@ shinyServer(function(input, output){
 	
 		output$pcnmThresholdValueUI  <- renderUI({
 			
-			if(is.null(input$distance) | input$threshold == FALSE)
+			if((is.null(input$distance) | input$threshold == FALSE) &  input$useExampleData == FALSE)
 				return()				
 			
 			numericInput(
@@ -105,7 +110,7 @@ shinyServer(function(input, output){
 	# Create UI for surface plot
 	output$pcnmSurfChoiUI  <- renderUI({
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return()	
 						
 		numericInput(
@@ -121,7 +126,7 @@ shinyServer(function(input, output){
 	# Create selection UI for PCNM visualisation...
 	output$pcnmPlotChoiUI1  <- renderUI({
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return()	
 		
 		numericInput(
@@ -136,7 +141,7 @@ shinyServer(function(input, output){
 
 	output$pcnmPlotChoiUI2  <- renderUI({
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return()	
 				
 		numericInput(
@@ -151,7 +156,7 @@ shinyServer(function(input, output){
 
 	output$pcnmPlotChoiUI3  <- renderUI({
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return()	
 				
 		numericInput(
@@ -166,7 +171,7 @@ shinyServer(function(input, output){
 
 	output$pcnmPlotChoiUI4  <- renderUI({
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return()	
 				
 		numericInput(
@@ -181,7 +186,7 @@ shinyServer(function(input, output){
 
 	output$pcnmPlotChoiUI5  <- renderUI({
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return()	
 				
 		numericInput(
@@ -196,7 +201,7 @@ shinyServer(function(input, output){
 
 	output$pcnmPlotChoiUI6  <- renderUI({
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return()	
 				
 		numericInput(
@@ -213,7 +218,7 @@ shinyServer(function(input, output){
 	# Create selection UI for vsPlot axes...
 	output$pcnmVsPlotChoiUI1  <- renderUI({
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return()	
 				
 		numericInput(
@@ -228,7 +233,7 @@ shinyServer(function(input, output){
 
 	output$pcnmVsPlotChoiUI2  <- renderUI({
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return()	
 				
 		numericInput(
@@ -243,7 +248,7 @@ shinyServer(function(input, output){
 
 	output$pcnmVsPlotChoiUI3  <- renderUI({		
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return()	
 				
 		numericInput(
@@ -258,7 +263,7 @@ shinyServer(function(input, output){
 
 	output$pcnmVsPlotChoiUI4  <- renderUI({		
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return()	
 				
 		numericInput(
@@ -376,7 +381,7 @@ shinyServer(function(input, output){
 # Create PCNM multiplot
 	output$pcnmPlot <- renderPlot({
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return()
 			
 		par(mfrow = c(3,2))
@@ -427,7 +432,7 @@ shinyServer(function(input, output){
 
 	output$pcnmSurf <- renderPlot({
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return()
 				
 		if (!is.null(input$pcnmSurfChoi)){
@@ -452,7 +457,7 @@ shinyServer(function(input, output){
 # Create PCNM vs PCNM plot
 	output$vsPlot <- renderPlot({
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return()
 			
 		x <- cbind(
@@ -501,7 +506,7 @@ shinyServer(function(input, output){
 
 	output$vectorsPrint <- renderPrint({
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return("Please upload data")
 			
 		print(pcnmSol()$vectors)
@@ -509,7 +514,7 @@ shinyServer(function(input, output){
 
 	output$valuesPrint <- renderPrint({
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return("Please upload data")
 			
 		print(pcnmSol()$values)
@@ -517,7 +522,7 @@ shinyServer(function(input, output){
 
 	output$truncDist <- renderPrint({
 		
-		if(is.null(input$distance))
+		if(is.null(input$distance) &  input$useExampleData == FALSE)
 				return("Please upload data")
 			
 		print(pcnmSol()$dist)
